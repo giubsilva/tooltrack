@@ -1,0 +1,21 @@
+{
+  "name": "tooltrack",
+  "version": "1.0.0",
+  "description": "Tool location tracker for field crews — Google Sheets backend, vanilla JS frontend",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:unit": "jest tests/unit.test.js",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": ["**/tests/unit.test.js"]
+  }
+}

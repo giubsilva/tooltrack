@@ -28,93 +28,44 @@
 html, body { height: 100%; overscroll-behavior: none; }
 body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; overflow: hidden; display: flex; flex-direction: column; }
 
-/* HEADER */
-.header {
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 16px 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
+.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 16px 10px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .logo { font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 800; letter-spacing: 1px; color: var(--accent); flex: 1; }
 .logo span { color: var(--text); }
 .sync-time { font-size: 10px; color: var(--muted); text-align: right; line-height: 1.3; min-width: 48px; }
-.sync-btn {
-  background: none; border: 1px solid var(--border); border-radius: 8px;
-  padding: 7px 12px; color: var(--muted); font-size: 12px; font-family: inherit;
-  cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;
-}
+.sync-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; color: var(--muted); font-size: 12px; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
 .sync-btn:active { background: var(--border); }
 .sync-icon { display: inline-block; font-size: 13px; }
 .sync-btn.syncing .sync-icon { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ACTION BAR — sits between header and tabs, swaps content per tab */
 .action-bar { padding: 10px 16px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-/* Search + filter bar (Tools / By Site / Move Log tabs) */
-#searchFilterBar { display: flex; align-items: center; gap: 8px; width: 100%; }
-
-.search-wrap { position: relative; flex: 1; min-width: 0; }
-.search-wrap input {
-  width: 100%; background: var(--card); border: 1.5px solid var(--border);
-  border-radius: 10px; padding: 10px 14px 10px 40px; color: var(--text);
-  font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s;
-}
+#searchFilterBar { display: flex; align-items: center; gap: 8px; width: 100%; flex-wrap: wrap; }
+.search-wrap { position: relative; width: 100%; }
+.search-wrap input { width: 100%; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px 10px 40px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; }
 .search-wrap input:focus { border-color: var(--accent); }
 .search-wrap input::placeholder { color: var(--muted); }
 .search-ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; }
-
-/* All button */
-.all-btn {
-  background: var(--card); border: 1.5px solid var(--border); border-radius: 20px;
-  padding: 8px 16px; font-size: 12px; font-weight: 600; color: var(--muted);
-  white-space: nowrap; cursor: pointer; flex-shrink: 0; font-family: inherit;
-  transition: all 0.15s;
-}
+.all-btn { background: var(--card); border: 1.5px solid var(--border); border-radius: 20px; padding: 8px 16px; font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; cursor: pointer; flex-shrink: 0; font-family: inherit; transition: all 0.15s; }
 .all-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 .all-btn:active { opacity: 0.7; }
-
-/* Site dropdown */
-.site-select {
-  background: var(--card); border: 1.5px solid var(--border); border-radius: 20px;
-  padding: 8px 14px; color: var(--text); font-size: 12px; font-weight: 500;
-  font-family: inherit; outline: none; cursor: pointer; min-width: 0;
-  flex: 1;
-}
+.site-select { background: var(--card); border: 1.5px solid var(--border); border-radius: 20px; padding: 8px 14px; color: var(--text); font-size: 12px; font-weight: 500; font-family: inherit; outline: none; cursor: pointer; min-width: 0; flex: 1; }
 .site-select:focus { border-color: var(--accent); }
 .site-select option { background: #1a1e26; color: var(--text); }
 
-/* Add site bar (Sites+ tab) */
 #addSiteBar { display: none; align-items: center; gap: 8px; width: 100%; }
 #addSiteBar .input-field { margin-bottom: 0; flex: 1; min-width: 0; padding: 10px 14px; }
-.btn-add-site {
-  flex-shrink: 0; padding: 10px 18px; border-radius: 9px; font-size: 14px;
-  font-weight: 600; font-family: inherit; cursor: pointer; border: none;
-  background: var(--accent); color: #000; white-space: nowrap; transition: opacity 0.15s;
-}
+.btn-add-site { flex-shrink: 0; padding: 10px 18px; border-radius: 9px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; border: none; background: var(--accent); color: #000; white-space: nowrap; transition: opacity 0.15s; }
 .btn-add-site:active { opacity: 0.75; }
 .btn-add-site:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* TABS */
 .nav-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 16px; }
-.nav-tab {
-  flex: 1; padding: 10px 0; text-align: center; font-size: 11px; font-weight: 600;
-  letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted);
-  cursor: pointer; border-bottom: 2.5px solid transparent; transition: all 0.15s;
-}
+.nav-tab { flex: 1; padding: 10px 0; text-align: center; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 2.5px solid transparent; transition: all 0.15s; }
 .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-/* SCROLL */
 .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 10px 16px calc(16px + var(--safe-bottom)); }
-
-/* RESULTS BAR */
 .results-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 8px; font-size: 11px; color: var(--muted); }
 .results-bar strong { color: var(--accent); }
 
-/* TOOL CARD */
 .tool-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; overflow: hidden; transition: border-color 0.15s; }
 .tool-card-body { display: flex; align-items: center; padding: 13px 14px; gap: 10px; }
 .tool-card:active { border-color: var(--accent); }
@@ -133,7 +84,6 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .move-btn { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 13px; color: var(--text); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
 .move-btn:active { background: var(--accent); border-color: var(--accent); color: #000; }
 
-/* SITE CARDS */
 .site-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; overflow: hidden; }
 .site-card:active { border-color: var(--accent); }
 .site-card-hdr { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--border); }
@@ -143,24 +93,15 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .site-preview-item { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .site-preview-more { font-size: 12px; color: var(--accent); margin-top: 2px; }
 
-/* MANAGE SITES TAB */
 .manage-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 600; margin: 4px 0 10px; }
-.manage-site-row {
-  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
-  padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
-}
+.manage-site-row { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
 .manage-site-info { flex: 1; min-width: 0; }
 .manage-site-name { font-size: 14px; font-weight: 500; }
 .manage-site-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .manage-site-count { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); padding: 2px 8px; border-radius: 6px; flex-shrink: 0; }
-.btn-remove-site {
-  background: none; border: 1px solid var(--border); border-radius: 7px;
-  padding: 7px 11px; color: var(--red); font-size: 12px; font-weight: 600;
-  font-family: inherit; cursor: pointer; flex-shrink: 0; transition: all 0.15s;
-}
+.btn-remove-site { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 7px 11px; color: var(--red); font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
 .btn-remove-site:active { background: rgba(245,101,101,0.12); border-color: var(--red); }
 
-/* HISTORY */
 .history-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
 .history-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 5px; flex-shrink: 0; }
 .history-body { flex: 1; min-width: 0; }
@@ -170,7 +111,6 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .history-who { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .history-time { font-size: 11px; color: var(--muted); flex-shrink: 0; text-align: right; }
 
-/* MOVE SHEET */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: flex-end; justify-content: center; }
 .overlay.open { display: flex; }
 .sheet { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 92vh; display: flex; flex-direction: column; animation: slideUp 0.25s ease; padding-bottom: var(--safe-bottom); }
@@ -196,17 +136,18 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .btn-confirm { background: var(--accent); color: #000; }
 .btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* EMPTY */
+/* PIN sheet */
+.pin-sheet { max-height: 320px; }
+.pin-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
 .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
 .empty-icon { font-size: 36px; margin-bottom: 10px; }
 .empty p { font-size: 14px; line-height: 1.6; }
 
-/* TOAST */
 .toast { position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card); border: 1px solid var(--accent); color: var(--text); padding: 11px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 300; transition: transform 0.3s ease; white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis; }
 .toast.show { transform: translateX(-50%) translateY(0); }
 .toast.error { border-color: var(--red); }
 
-/* LOADING */
 .loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 400; gap: 14px; transition: opacity 0.3s; }
 .loading-overlay.hidden { opacity: 0; pointer-events: none; }
 .loading-logo { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--accent); }
@@ -214,20 +155,12 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
 .loading-msg { font-size: 13px; color: var(--muted); }
 
-/* ERROR STATE */
-.error-state { background: rgba(245,101,101,0.08); border: 1px solid rgba(245,101,101,0.3); border-radius: var(--r); padding: 16px; margin: 12px 0; font-size: 13px; color: var(--red); line-height: 1.5; }
-
-/* ── DESKTOP / LAPTOP (≥ 1024px) ──────────────────── */
 @media (min-width: 1024px) {
-  /* Search takes 25% width, filter fills rest */
-  .search-wrap { flex: 0 0 25%; max-width: 25%; }
-  .site-select { flex: 0 1 260px; }
-
-  /* Two-column tool list */
+  #searchFilterBar { flex-wrap: nowrap; }
+  .search-wrap { width: auto; flex: 0 0 25%; max-width: 25%; }
+  .site-select  { flex: 0 1 260px; }
   #toolList { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   #toolList .tool-card { margin-bottom: 0; }
-
-  /* Two-column site cards */
   #siteList { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   #siteList .site-card { margin-bottom: 0; }
 }
@@ -235,14 +168,12 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 </head>
 <body>
 
-<!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-logo">🔧 Tool<span>Track</span></div>
   <div class="spinner"></div>
   <div class="loading-msg" id="loadingMsg">Loading tools...</div>
 </div>
 
-<!-- HEADER -->
 <div class="header">
   <div class="logo">🔧 Tool<span>Track</span></div>
   <div class="sync-time" id="syncTime"></div>
@@ -252,10 +183,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   </button>
 </div>
 
-<!-- ACTION BAR — swaps between search+filter and add-site form -->
 <div class="action-bar" id="actionBar">
-
-  <!-- Search + filter (visible on Tools / By Site / Move Log tabs) -->
   <div id="searchFilterBar">
     <div class="search-wrap">
       <span class="search-ico">🔍</span>
@@ -266,17 +194,13 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
       <option value="">All Sites</option>
     </select>
   </div>
-
-  <!-- Add site form (visible on Sites+ tab only) -->
   <div id="addSiteBar">
     <input type="text" class="input-field" id="newSiteName" placeholder="New site name" autocomplete="off" autocorrect="off" spellcheck="false">
     <input type="text" class="input-field" id="newSiteAddedBy" placeholder="Your name" autocomplete="name">
     <button class="btn-add-site" id="addSiteBtn" onclick="addSite()">Add Site</button>
   </div>
-
 </div>
 
-<!-- TABS -->
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="switchTab('tools',this)">Tools</div>
   <div class="nav-tab" onclick="switchTab('sites',this)">By Site</div>
@@ -284,27 +208,17 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   <div class="nav-tab" onclick="switchTab('manage',this)">Sites +</div>
 </div>
 
-<!-- CONTENT -->
 <div class="scroll-content" id="scrollContent">
-
   <div id="tabTools">
     <div class="results-bar"><span id="resultsInfo">Loading...</span></div>
     <div id="toolList"></div>
   </div>
-
-  <div id="tabSites" style="display:none">
-    <div id="siteList"></div>
-  </div>
-
-  <div id="tabLog" style="display:none">
-    <div id="logList"></div>
-  </div>
-
+  <div id="tabSites"  style="display:none"><div id="siteList"></div></div>
+  <div id="tabLog"    style="display:none"><div id="logList"></div></div>
   <div id="tabManage" style="display:none">
     <div class="manage-section-label">Current Sites</div>
     <div id="manageSiteList"></div>
   </div>
-
 </div>
 
 <!-- MOVE SHEET -->
@@ -325,17 +239,37 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
       <input type="text" class="input-field" id="movedByInput" placeholder="John Doe" autocomplete="name">
     </div>
     <div class="sheet-footer">
-      <button class="btn btn-cancel" onclick="closeSheet()">Cancel</button>
-      <button class="btn btn-confirm" id="confirmBtn" onclick="confirmMove()">Move It →</button>
+      <button class="btn btn-cancel" id="cancelMoveBtn">Cancel</button>
+      <button class="btn btn-confirm" id="confirmBtn">Move It →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN SHEET -->
+<div class="overlay" id="pinOverlay">
+  <div class="sheet pin-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Access PIN</div>
+      <div class="sheet-subtitle">Enter the PIN provided by your supervisor</div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-label">PIN</div>
+      <input type="password" class="input-field" id="pinInput" placeholder="Enter PIN" inputmode="numeric" autocomplete="off">
+      <p class="pin-hint">The PIN is stored on this device. You won't need to enter it again.</p>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-confirm" id="savePinBtn">Continue</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- Pure utility functions (also used by tests) -->
+<script src="src/utils.js"></script>
+
 <script>
-// ─────────────────────────────────────────────────────────────────
-//  ▶  CONFIGURATION
 // ─────────────────────────────────────────────────────────────────
 const CONFIG = {
   scriptUrl: "https://script.google.com/macros/s/AKfycbxRB3UqSIUbLaWI9t5N9W1y6WkbTMSWhumm0g8zi4rVOAP7KfEktUK-GBD70D-Dxp6M/exec",
@@ -352,7 +286,9 @@ let currentTab       = 'tools';
 let lastSync         = null;
 let isSyncing        = false;
 
-const savedName = () => localStorage.getItem('tt_worker_name') || '';
+const savedName   = () => localStorage.getItem('tt_worker_name') || '';
+const getPin      = () => localStorage.getItem('tt_pin') || '';
+const clearPin    = () => localStorage.removeItem('tt_pin');
 
 // ── API ──────────────────────────────────────────────
 
@@ -366,10 +302,15 @@ async function post(body) {
   const res = await fetch(CONFIG.scriptUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ ...body, pin: getPin() }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
+  if (data.error === 'unauthorized') {
+    clearPin();
+    openPinSheet();
+    throw new Error('unauthorized');
+  }
   if (data.error) throw new Error(data.error);
   return data;
 }
@@ -406,40 +347,14 @@ function updateSyncTime() {
   document.getElementById('syncTime').innerHTML = `Synced<br>${h}:${m}`;
 }
 
-// ── HELPERS ──────────────────────────────────────────
-
-function locClass(loc) {
-  if (!loc || loc === '?') return 'unknown';
-  const l = loc.toLowerCase();
-  if (l.includes('decom') || l.includes('scrap')) return 'decom';
-  if (l.includes('repair')) return 'repair';
-  return '';
-}
-
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function siteNames() {
-  const sheetNames = sites.map(s => s.name);
-  const toolLocs   = tools.map(t => t.loc).filter(l => l && l !== '?');
-  return [...new Set([...sheetNames, ...toolLocs])].sort();
-}
-
-function searchQuery() {
-  return (document.getElementById('mainSearchInput').value || '').toLowerCase().trim();
-}
-
 // ── SITE FILTER ──────────────────────────────────────
 
 function buildSiteSelect() {
   const select = document.getElementById('siteSelect');
-  const names  = siteNames();
+  const names  = siteNames(sites, tools);
   select.innerHTML =
     '<option value="">All Sites</option>' +
-    names.map(s =>
-      `<option value="${esc(s)}" ${siteFilter===s?'selected':''}>${esc(s)}</option>`
-    ).join('');
+    names.map(s => `<option value="${esc(s)}" ${siteFilter===s?'selected':''}>${esc(s)}</option>`).join('');
 }
 
 function setSiteFilter(site) {
@@ -457,6 +372,10 @@ function onSearchInput() {
   renderCurrentTab();
 }
 
+function searchQuery() {
+  return (document.getElementById('mainSearchInput').value || '').toLowerCase().trim();
+}
+
 // ── TAB ROUTING ──────────────────────────────────────
 
 function renderCurrentTab() {
@@ -468,16 +387,7 @@ function renderCurrentTab() {
 // ── RENDER: TOOLS ────────────────────────────────────
 
 function renderTools() {
-  const q = searchQuery();
-  const filtered = tools.filter(t => {
-    const matchQ = !q ||
-      t.name.toLowerCase().includes(q) ||
-      (t.notes||'').toLowerCase().includes(q) ||
-      (t.loc||'').toLowerCase().includes(q);
-    const matchSite = !siteFilter || t.loc === siteFilter;
-    return matchQ && matchSite;
-  });
-
+  const filtered = filterTools(tools, searchQuery(), siteFilter);
   const el = document.getElementById('toolList');
   el.innerHTML = filtered.length
     ? filtered.map(t => {
@@ -492,13 +402,13 @@ function renderTools() {
                 <div class="loc-badge ${cls}">📍 ${esc(t.loc||'Unknown')}</div>
               </div>
             </div>
-            <button class="move-btn" onclick="openSheet('${esc(t.name)}')">Move</button>
+            <button class="move-btn" data-tool="${esc(t.name)}">Move</button>
           </div>
         </div>`;
       }).join('')
     : '<div class="empty"><div class="empty-icon">🔍</div><p>No tools match your search</p></div>';
 
-  document.getElementById('resultsInfo').innerHTML = (q || siteFilter)
+  document.getElementById('resultsInfo').innerHTML = (searchQuery() || siteFilter)
     ? `<strong>${filtered.length}</strong> of ${tools.length} tools`
     : `<strong>${tools.length}</strong> tools`;
 }
@@ -506,19 +416,14 @@ function renderTools() {
 // ── RENDER: SITES ────────────────────────────────────
 
 function renderSites() {
-  const q     = searchQuery();
-  const el    = document.getElementById('siteList');
-  const names = siteNames();
+  const el      = document.getElementById('siteList');
+  const visible = filterSites(sites, tools, searchQuery(), siteFilter);
   let html = '';
 
-  for (const site of names) {
-    if (siteFilter && site !== siteFilter) continue;
-    const st = tools.filter(t => t.loc === site);
-    if (!st.length) continue;
-    if (q && !site.toLowerCase().includes(q) && !st.some(t => t.name.toLowerCase().includes(q))) continue;
-
+  for (const site of visible) {
+    const st    = tools.filter(t => t.loc === site);
     const shown = st.slice(0,4);
-    html += `<div class="site-card" onclick="jumpSite('${site.replace(/'/g,"\\'")}')">
+    html += `<div class="site-card" data-site="${esc(site)}">
       <div class="site-card-hdr">
         <div class="site-name">📍 ${esc(site)}</div>
         <div class="site-pill">${st.length}</div>
@@ -536,21 +441,11 @@ function renderSites() {
 // ── RENDER: LOG ──────────────────────────────────────
 
 function renderLog() {
-  const q  = searchQuery();
-  const el = document.getElementById('logList');
-
-  const filtered = moveLog.filter(h => {
-    const matchQ = !q ||
-      h.name.toLowerCase().includes(q) ||
-      (h.from||'').toLowerCase().includes(q) ||
-      (h.to||'').toLowerCase().includes(q) ||
-      (h.by||'').toLowerCase().includes(q);
-    const matchSite = !siteFilter || h.to === siteFilter || h.from === siteFilter;
-    return matchQ && matchSite;
-  });
+  const el       = document.getElementById('logList');
+  const filtered = filterLog(moveLog, searchQuery(), siteFilter);
 
   if (!filtered.length) {
-    el.innerHTML = (q || siteFilter)
+    el.innerHTML = (searchQuery() || siteFilter)
       ? '<div class="empty"><div class="empty-icon">🔍</div><p>No moves match your search</p></div>'
       : '<div class="empty"><div class="empty-icon">📋</div><p>No moves logged yet.<br>Move a tool to see history here.</p></div>';
     return;
@@ -590,7 +485,7 @@ function renderManage() {
       </div>
       ${toolCount > 0
         ? `<div class="manage-site-count">${toolCount} tool${toolCount>1?'s':''}</div>`
-        : `<button class="btn-remove-site" onclick="removeSite('${s.name.replace(/'/g,"\\'")}')">Remove</button>`
+        : `<button class="btn-remove-site" data-site="${esc(s.name)}">Remove</button>`
       }
     </div>`;
   }).join('');
@@ -602,17 +497,13 @@ function switchTab(tab, el) {
   currentTab = tab;
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-
   document.getElementById('tabTools').style.display  = tab==='tools'  ? 'block' : 'none';
   document.getElementById('tabSites').style.display  = tab==='sites'  ? 'block' : 'none';
   document.getElementById('tabLog').style.display    = tab==='log'    ? 'block' : 'none';
   document.getElementById('tabManage').style.display = tab==='manage' ? 'block' : 'none';
-
-  // Swap action bar content
   const isManage = tab === 'manage';
   document.getElementById('searchFilterBar').style.display = isManage ? 'none' : 'flex';
   document.getElementById('addSiteBar').style.display      = isManage ? 'flex' : 'none';
-
   document.getElementById('scrollContent').scrollTo(0,0);
   if (!isManage) renderCurrentTab();
 }
@@ -634,8 +525,8 @@ function openSheet(toolName) {
   document.getElementById('sheetLocText').textContent  = t.loc || 'Unknown';
   document.getElementById('movedByInput').value = savedName();
 
-  document.getElementById('sitesGrid').innerHTML = siteNames().map(s =>
-    `<button class="site-opt ${s===t.loc?'picked':''}" onclick="pickSite('${s.replace(/'/g,"\\'")}',this)">${esc(s)}</button>`
+  document.getElementById('sitesGrid').innerHTML = siteNames(sites, tools).map(s =>
+    `<button class="site-opt${s===t.loc?' picked':''}" data-site="${esc(s)}">${esc(s)}</button>`
   ).join('');
 
   document.getElementById('moveOverlay').classList.add('open');
@@ -672,19 +563,15 @@ async function confirmMove() {
   const oldLoc = t.loc;
   try {
     await post({ action: 'move', toolName: t.name, fromLoc: oldLoc, newLoc, movedBy });
-
     t.loc = newLoc;
     moveLog.unshift({ name: t.name, from: oldLoc, to: newLoc, by: movedBy, time: 'just now' });
-
     closeSheet();
     buildSiteSelect();
     renderCurrentTab();
-
     const short = t.name.length > 26 ? t.name.slice(0,26)+'…' : t.name;
     showToast(`✅ ${short} → ${newLoc}`);
   } catch(e) {
-    console.error(e);
-    showToast('⚠️ Save failed — check connection', true);
+    if (e.message !== 'unauthorized') showToast('⚠️ Save failed — check connection', true);
   }
 
   confirmBtn.disabled = false;
@@ -711,18 +598,15 @@ async function addSite() {
 
   try {
     await post({ action: 'addSite', siteName, addedBy });
-
-    const now = new Date();
+    const now     = new Date();
     const timeStr = now.toLocaleString('en-CA', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
     sites.push({ name: siteName, addedBy, addedAt: timeStr });
-
     document.getElementById('newSiteName').value = '';
     buildSiteSelect();
     renderManage();
     showToast(`✅ "${siteName}" added`);
   } catch(e) {
-    console.error(e);
-    showToast('⚠️ Failed to add site — check connection', true);
+    if (e.message !== 'unauthorized') showToast('⚠️ Failed to add site', true);
   }
 
   btn.disabled = false;
@@ -735,7 +619,6 @@ async function removeSite(siteName) {
     showToast(`⚠️ Move the ${toolCount} tool${toolCount>1?'s':''} off this site first`, true);
     return;
   }
-
   try {
     await post({ action: 'removeSite', siteName });
     sites = sites.filter(s => s.name !== siteName);
@@ -744,9 +627,24 @@ async function removeSite(siteName) {
     renderManage();
     showToast(`✅ "${siteName}" removed`);
   } catch(e) {
-    console.error(e);
-    showToast('⚠️ Failed to remove site — check connection', true);
+    if (e.message !== 'unauthorized') showToast('⚠️ Failed to remove site', true);
   }
+}
+
+// ── PIN ──────────────────────────────────────────────
+
+function openPinSheet() {
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('pinInput').focus(), 300);
+}
+
+function savePIN() {
+  const pin = document.getElementById('pinInput').value.trim();
+  if (!pin) { showToast('⚠️ Enter a PIN', true); return; }
+  localStorage.setItem('tt_pin', pin);
+  document.getElementById('pinOverlay').classList.remove('open');
+  showToast('PIN saved — try again');
 }
 
 // ── TOAST ────────────────────────────────────────────
@@ -761,13 +659,43 @@ function showToast(msg, isError = false) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
 
-// ── INIT ─────────────────────────────────────────────
+// ── EVENT DELEGATION ─────────────────────────────────
+// Replaces all inline onclick on user-data elements (XSS prevention)
 
-document.getElementById('moveOverlay').addEventListener('click', function(e) {
-  if (e.target === this) closeSheet();
+document.addEventListener('click', e => {
+  // Move button on tool card
+  const moveBtn = e.target.closest('.move-btn');
+  if (moveBtn) { openSheet(moveBtn.dataset.tool); return; }
+
+  // Site card in By Site tab
+  const siteCard = e.target.closest('.site-card');
+  if (siteCard) { jumpSite(siteCard.dataset.site); return; }
+
+  // Site option inside move sheet
+  const siteOpt = e.target.closest('.site-opt');
+  if (siteOpt) { pickSite(siteOpt.dataset.site, siteOpt); return; }
+
+  // Remove site button in Sites+ tab
+  const removeBtn = e.target.closest('.btn-remove-site');
+  if (removeBtn) { removeSite(removeBtn.dataset.site); return; }
 });
 
+document.getElementById('confirmBtn').addEventListener('click', confirmMove);
+document.getElementById('cancelMoveBtn').addEventListener('click', closeSheet);
+document.getElementById('savePinBtn').addEventListener('click', savePIN);
+document.getElementById('pinInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') savePIN();
+});
+document.getElementById('moveOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('moveOverlay')) closeSheet();
+});
+
+// ── INIT ─────────────────────────────────────────────
+
 async function init() {
+  // Prompt for PIN on first use
+  if (!getPin()) openPinSheet();
+
   try {
     await syncAll(true);
   } catch(e) {
@@ -775,7 +703,7 @@ async function init() {
     showToast('⚠️ Could not connect', true);
   }
   document.getElementById('loadingOverlay').classList.add('hidden');
-  setTimeout(() => document.getElementById('loadingOverlay').style.display='none', 400);
+  setTimeout(() => document.getElementById('loadingOverlay').style.display = 'none', 400);
 }
 
 init();
