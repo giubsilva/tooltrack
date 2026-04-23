@@ -28,21 +28,6 @@
 html, body { height: 100%; overscroll-behavior: none; }
 body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; overflow: hidden; display: flex; flex-direction: column; }
 
-/* CONFIG BANNER */
-.config-banner {
-  background: #2d1a00;
-  border-bottom: 2px solid var(--accent);
-  padding: 10px 16px;
-  font-size: 12px;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.config-banner a { color: var(--accent); text-decoration: underline; }
-.config-banner.hidden { display: none; }
-
 /* HEADER */
 .header {
   background: var(--card);
@@ -78,8 +63,46 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .search-wrap input::placeholder { color: var(--muted); }
 .search-ico { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
 
+/* FILTER ROW — wraps both desktop chips and mobile dropdown */
+#filterRow { flex-shrink: 0; }
+
+/* Mobile / tablet filter: All button + select dropdown */
+.filter-mobile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 0;
+}
+.site-select {
+  flex: 1;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 14px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  min-width: 0;
+}
+.site-select:focus { border-color: var(--accent); }
+.site-select option { background: #1a1e26; color: var(--text); }
+
+/* Desktop filter: arrow buttons + scrollable chips */
+.filter-desktop { display: none; align-items: center; padding: 10px 16px 0; gap: 6px; }
+.chip-arrow {
+  background: var(--card); border: 1px solid var(--border); border-radius: 50%;
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text); font-size: 18px; flex-shrink: 0;
+  transition: background 0.15s; line-height: 1; padding: 0;
+}
+.chip-arrow:hover { background: var(--border); }
+.filter-desktop .chips-row { padding: 0; flex: 1; min-width: 0; overflow: hidden; }
+
 /* CHIPS */
-.chips-row { display: flex; gap: 7px; padding: 10px 16px 0; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+.chips-row { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; }
 .chips-row::-webkit-scrollbar { display: none; }
 .chip {
   background: var(--card); border: 1px solid var(--border); border-radius: 20px;
@@ -133,6 +156,9 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .site-preview { padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 3px; }
 .site-preview-item { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .site-preview-more { font-size: 12px; color: var(--accent); margin-top: 2px; }
+
+/* LOG SEARCH */
+.log-search { margin: 6px 0 10px; }
 
 /* MANAGE SITES TAB */
 .manage-section-label {
@@ -221,15 +247,20 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 
 /* ERROR STATE */
 .error-state { background: rgba(245,101,101,0.08); border: 1px solid rgba(245,101,101,0.3); border-radius: var(--r); padding: 16px; margin: 12px 0; font-size: 13px; color: var(--red); line-height: 1.5; }
+
+/* ── DESKTOP / LAPTOP (≥ 1024px) ──────────────────── */
+@media (min-width: 1024px) {
+  /* Show arrow-chips, hide dropdown */
+  .filter-desktop { display: flex; }
+  .filter-mobile  { display: none; }
+
+  /* Two-column tool list */
+  #toolList { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  #toolList .tool-card { margin-bottom: 0; }
+}
 </style>
 </head>
 <body>
-
-<!-- CONFIG BANNER — hidden once configured -->
-<div class="config-banner" id="configBanner">
-  ⚙️ <strong>Setup required:</strong> Paste your Google Apps Script URL into CONFIG.scriptUrl at the top of the &lt;script&gt;.
-  <a href="#" onclick="document.getElementById('configBanner').classList.add('hidden');return false;">Dismiss</a>
-</div>
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -248,16 +279,30 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   </button>
 </div>
 
-<!-- SEARCH -->
-<div class="search-area">
+<!-- SEARCH (tools tab only) -->
+<div class="search-area" id="toolsSearch">
   <div class="search-wrap">
     <span class="search-ico">🔍</span>
     <input type="search" id="searchInput" placeholder="Search tools or locations..." oninput="applyFilters()" autocomplete="off" autocorrect="off" spellcheck="false">
   </div>
 </div>
 
-<!-- CHIPS -->
-<div class="chips-row" id="chipsRow"></div>
+<!-- FILTER ROW -->
+<div id="filterRow">
+  <!-- Desktop: scroll arrows + chips -->
+  <div class="filter-desktop">
+    <button class="chip-arrow" onclick="scrollChips(-1)">&#8249;</button>
+    <div class="chips-row" id="chipsRow"></div>
+    <button class="chip-arrow" onclick="scrollChips(1)">&#8250;</button>
+  </div>
+  <!-- Mobile / tablet: All button + dropdown -->
+  <div class="filter-mobile">
+    <button class="chip active" id="allChipMobile" onclick="setSiteFilter('')">All</button>
+    <select class="site-select" id="siteSelect" onchange="setSiteFilterFromDropdown(this)">
+      <option value="">All Sites</option>
+    </select>
+  </div>
+</div>
 
 <!-- TABS -->
 <div class="nav-tabs">
@@ -273,8 +318,21 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
     <div class="results-bar"><span id="resultsInfo">Loading...</span></div>
     <div id="toolList"></div>
   </div>
-  <div id="tabSites" style="display:none"><div id="siteList"></div></div>
-  <div id="tabLog" style="display:none"><div id="logList"></div></div>
+
+  <div id="tabSites" style="display:none">
+    <div id="siteList"></div>
+  </div>
+
+  <div id="tabLog" style="display:none">
+    <div class="log-search">
+      <div class="search-wrap">
+        <span class="search-ico">🔍</span>
+        <input type="search" id="logSearchInput" placeholder="Search tool, location or person..." oninput="applyLogFilter()" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+    </div>
+    <div id="logList"></div>
+  </div>
+
   <div id="tabManage" style="display:none">
     <div class="manage-section-label">Add New Site</div>
     <div class="add-site-form">
@@ -299,12 +357,10 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
       <div class="sheet-label">Current Location</div>
       <div class="current-loc-tag"><span>📍</span><span id="sheetLocText"></span></div>
       <div class="arrow-row">↓ Move to</div>
-      <div class="sheet-label">Select Site</div>
+      <div class="sheet-label">Select New Location</div>
       <div class="sites-grid" id="sitesGrid"></div>
-      <div class="sheet-label">Or type a custom location</div>
-      <input type="text" class="input-field" id="customLoc" placeholder="e.g. 4583 West 3rd, Tom, Bowen...">
       <div class="sheet-label">Your name (for the log)</div>
-      <input type="text" class="input-field" id="movedByInput" placeholder="e.g. Jesse, Kevin, Chris..." autocomplete="name">
+      <input type="text" class="input-field" id="movedByInput" placeholder="John Doe" autocomplete="name">
     </div>
     <div class="sheet-footer">
       <button class="btn btn-cancel" onclick="closeSheet()">Cancel</button>
@@ -327,10 +383,11 @@ const CONFIG = {
 // ── STATE ────────────────────────────────────────────
 let tools            = [];
 let moveLog          = [];
-let sites            = [];   // loaded from JobSites tab in the Sheet
+let sites            = [];
 let selectedToolName = null;
 let selectedSiteVal  = null;
 let siteFilter       = '';
+let logFilter        = '';
 let lastSync         = null;
 let isSyncing        = false;
 
@@ -405,7 +462,6 @@ function esc(s) {
 }
 
 function siteNames() {
-  // Names from the Sheet, plus any tool locations not yet listed, sorted
   const sheetNames = sites.map(s => s.name);
   const toolLocs   = tools.map(t => t.loc).filter(l => l && l !== '?');
   return [...new Set([...sheetNames, ...toolLocs])].sort();
@@ -418,12 +474,34 @@ function buildChips() {
     names.map(s =>
       `<div class="chip ${siteFilter===s?'active':''}" onclick="setSiteFilter('${s.replace(/'/g,"\\'")}')">📍 ${esc(s)}</div>`
     ).join('');
+  buildMobileFilter();
+}
+
+function buildMobileFilter() {
+  const select = document.getElementById('siteSelect');
+  const names  = siteNames();
+  select.innerHTML =
+    '<option value="">All Sites</option>' +
+    names.map(s =>
+      `<option value="${esc(s)}" ${siteFilter===s?'selected':''}>${esc(s)}</option>`
+    ).join('');
 }
 
 function setSiteFilter(site) {
   siteFilter = site;
+  // Sync mobile UI
+  document.getElementById('siteSelect').value = site;
+  document.getElementById('allChipMobile').classList.toggle('active', !site);
   buildChips();
   applyFilters();
+}
+
+function setSiteFilterFromDropdown(select) {
+  setSiteFilter(select.value);
+}
+
+function scrollChips(dir) {
+  document.getElementById('chipsRow').scrollBy({ left: dir * 200, behavior: 'smooth' });
 }
 
 function applyFilters() {
@@ -487,13 +565,30 @@ function renderSites() {
   el.innerHTML = html || '<div class="empty"><div class="empty-icon">📍</div><p>No sites with tools</p></div>';
 }
 
+function applyLogFilter() {
+  logFilter = (document.getElementById('logSearchInput').value||'').toLowerCase().trim();
+  renderLog();
+}
+
 function renderLog() {
   const el = document.getElementById('logList');
-  if (!moveLog.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No moves logged yet.<br>Move a tool to see history here.</p></div>';
+  const filtered = logFilter
+    ? moveLog.filter(h =>
+        h.name.toLowerCase().includes(logFilter) ||
+        (h.from||'').toLowerCase().includes(logFilter) ||
+        (h.to||'').toLowerCase().includes(logFilter) ||
+        (h.by||'').toLowerCase().includes(logFilter)
+      )
+    : moveLog;
+
+  if (!filtered.length) {
+    el.innerHTML = logFilter
+      ? '<div class="empty"><div class="empty-icon">🔍</div><p>No moves match your search</p></div>'
+      : '<div class="empty"><div class="empty-icon">📋</div><p>No moves logged yet.<br>Move a tool to see history here.</p></div>';
     return;
   }
-  el.innerHTML = moveLog.slice(0,100).map(h =>
+
+  el.innerHTML = filtered.slice(0,100).map(h =>
     `<div class="history-card">
       <div class="history-dot"></div>
       <div class="history-body">
@@ -507,7 +602,6 @@ function renderLog() {
 }
 
 function renderManage() {
-  // Pre-fill the "your name" field from localStorage
   const addedByInput = document.getElementById('newSiteAddedBy');
   if (!addedByInput.value) addedByInput.value = savedName();
 
@@ -541,8 +635,8 @@ function switchTab(tab, el) {
   document.getElementById('tabSites').style.display  = tab==='sites'  ? 'block' : 'none';
   document.getElementById('tabLog').style.display    = tab==='log'    ? 'block' : 'none';
   document.getElementById('tabManage').style.display = tab==='manage' ? 'block' : 'none';
-  document.querySelector('.search-area').style.display = tab==='tools' ? 'block' : 'none';
-  document.getElementById('chipsRow').style.display    = tab==='tools' ? 'flex'  : 'none';
+  document.getElementById('toolsSearch').style.display = tab==='tools' ? 'block' : 'none';
+  document.getElementById('filterRow').style.display   = tab==='tools' ? ''      : 'none';
   document.getElementById('scrollContent').scrollTo(0,0);
 }
 
@@ -562,7 +656,6 @@ function openSheet(toolName) {
 
   document.getElementById('sheetToolName').textContent = t.name;
   document.getElementById('sheetLocText').textContent  = t.loc || 'Unknown';
-  document.getElementById('customLoc').value = '';
   document.getElementById('movedByInput').value = savedName();
 
   document.getElementById('sitesGrid').innerHTML = siteNames().map(s =>
@@ -577,7 +670,6 @@ function pickSite(site, el) {
   selectedSiteVal = site;
   document.querySelectorAll('.site-opt').forEach(b => b.classList.remove('picked'));
   el.classList.add('picked');
-  document.getElementById('customLoc').value = '';
 }
 
 function closeSheet() {
@@ -587,11 +679,10 @@ function closeSheet() {
 }
 
 async function confirmMove() {
-  const custom  = document.getElementById('customLoc').value.trim();
-  const newLoc  = custom || selectedSiteVal;
+  const newLoc  = selectedSiteVal;
   const movedBy = document.getElementById('movedByInput').value.trim();
 
-  if (!newLoc) { showToast('⚠️ Pick or type a location first', true); return; }
+  if (!newLoc) { showToast('⚠️ Select a location from the list', true); return; }
 
   const t = tools.find(x => x.name === selectedToolName);
   if (!t) return;
@@ -703,10 +794,6 @@ function showToast(msg, isError = false) {
 document.getElementById('moveOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeSheet();
 });
-
-if (CONFIG.scriptUrl.includes('YOUR_APPS_SCRIPT')) {
-  document.getElementById('configBanner').classList.remove('hidden');
-}
 
 async function init() {
   try {
