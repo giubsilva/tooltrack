@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>ToolTrack</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #111418;
+  --card: #1a1e26;
+  --card2: #1f2430;
+  --border: #272d3d;
+  --accent: #f5a623;
+  --accent-dim: rgba(245,166,35,0.12);
+  --green: #2dd4a0;
+  --green-dim: rgba(45,212,160,0.12);
+  --red: #f56565;
+  --blue: #60a5fa;
+  --text: #eef0f6;
+  --muted: #6b7492;
+  --r: 12px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overscroll-behavior: none; }
+body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; overflow: hidden; display: flex; flex-direction: column; }
+
+/* CONFIG BANNER */
+.config-banner {
+  background: #2d1a00;
+  border-bottom: 2px solid var(--accent);
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.config-banner a { color: var(--accent); text-decoration: underline; }
+.config-banner.hidden { display: none; }
+
+/* HEADER */
+.header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.logo { font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 800; letter-spacing: 1px; color: var(--accent); flex: 1; }
+.logo span { color: var(--text); }
+.sync-time { font-size: 10px; color: var(--muted); text-align: right; line-height: 1.3; min-width: 48px; }
+.sync-btn {
+  background: none; border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 12px; color: var(--muted); font-size: 12px; font-family: inherit;
+  cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;
+}
+.sync-btn:active { background: var(--border); }
+.sync-icon { display: inline-block; font-size: 13px; }
+.sync-btn.syncing .sync-icon { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* SEARCH */
+.search-area { padding: 10px 16px 0; flex-shrink: 0; }
+.search-wrap { position: relative; }
+.search-wrap input {
+  width: 100%; background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 11px 14px 11px 42px; color: var(--text);
+  font-size: 15px; font-family: inherit; outline: none; transition: border-color 0.2s;
+}
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap input::placeholder { color: var(--muted); }
+.search-ico { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+
+/* CHIPS */
+.chips-row { display: flex; gap: 7px; padding: 10px 16px 0; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+.chips-row::-webkit-scrollbar { display: none; }
+.chip {
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--muted);
+  white-space: nowrap; cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+}
+.chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.chip:active { opacity: 0.7; }
+
+/* TABS */
+.nav-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; margin-top: 10px; padding: 0 16px; }
+.nav-tab {
+  flex: 1; padding: 10px 0; text-align: center; font-size: 12px; font-weight: 600;
+  letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted);
+  cursor: pointer; border-bottom: 2.5px solid transparent; transition: all 0.15s;
+}
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* SCROLL */
+.scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 10px 16px calc(16px + var(--safe-bottom)); }
+
+/* RESULTS BAR */
+.results-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 0 8px; font-size: 11px; color: var(--muted); }
+.results-bar strong { color: var(--accent); }
+
+/* TOOL CARD */
+.tool-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; overflow: hidden; transition: border-color 0.15s; }
+.tool-card-body { display: flex; align-items: center; padding: 13px 14px; gap: 10px; }
+.tool-card:active { border-color: var(--accent); }
+.tool-status-bar { width: 3px; border-radius: 3px; align-self: stretch; flex-shrink: 0; background: var(--green); }
+.tool-status-bar.unknown { background: var(--accent); }
+.tool-status-bar.decom { background: var(--red); }
+.tool-status-bar.repair { background: var(--blue); }
+.tool-details { flex: 1; min-width: 0; }
+.tool-name { font-size: 14px; font-weight: 500; line-height: 1.3; word-break: break-word; }
+.tool-sub { font-size: 11px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tool-loc-row { display: flex; align-items: center; gap: 5px; margin-top: 5px; }
+.loc-badge { background: var(--green-dim); color: var(--green); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+.loc-badge.unknown { background: rgba(245,166,35,0.12); color: var(--accent); }
+.loc-badge.decom { background: rgba(245,101,101,0.12); color: var(--red); }
+.loc-badge.repair { background: rgba(96,165,250,0.12); color: var(--blue); }
+.move-btn { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 13px; color: var(--text); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
+.move-btn:active { background: var(--accent); border-color: var(--accent); color: #000; }
+
+/* SITE CARDS */
+.site-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; overflow: hidden; }
+.site-card:active { border-color: var(--accent); }
+.site-card-hdr { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--border); }
+.site-name { font-weight: 600; font-size: 14px; }
+.site-pill { background: var(--accent); color: #000; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px; }
+.site-preview { padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 3px; }
+.site-preview-item { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.site-preview-more { font-size: 12px; color: var(--accent); margin-top: 2px; }
+
+/* HISTORY */
+.history-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+.history-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 5px; flex-shrink: 0; }
+.history-body { flex: 1; min-width: 0; }
+.history-title { font-size: 13px; font-weight: 500; }
+.history-route { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.history-route strong { color: var(--green); }
+.history-who { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.history-time { font-size: 11px; color: var(--muted); flex-shrink: 0; text-align: right; }
+
+/* MOVE SHEET */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: flex-end; justify-content: center; }
+.overlay.open { display: flex; }
+.sheet { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 92vh; display: flex; flex-direction: column; animation: slideUp 0.25s ease; padding-bottom: var(--safe-bottom); }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-handle { width: 38px; height: 4px; background: var(--border); border-radius: 4px; margin: 12px auto 6px; flex-shrink: 0; }
+.sheet-header { padding: 4px 20px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.sheet-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+.sheet-subtitle { font-size: 13px; color: var(--text); margin-top: 2px; line-height: 1.4; }
+.sheet-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px 20px; }
+.sheet-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+.current-loc-tag { display: inline-flex; align-items: center; gap: 7px; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 500; margin-bottom: 16px; }
+.arrow-row { text-align: center; color: var(--muted); font-size: 18px; margin-bottom: 14px; }
+.sites-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+.site-opt { background: var(--card2); border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 12px; font-size: 13px; font-weight: 500; font-family: inherit; color: var(--text); cursor: pointer; text-align: left; transition: all 0.15px; line-height: 1.2; }
+.site-opt:active { border-color: var(--accent); }
+.site-opt.picked { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.input-field { width: 100%; background: var(--card2); border: 1.5px solid var(--border); border-radius: 9px; padding: 11px 14px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; margin-bottom: 12px; transition: border-color 0.2s; }
+.input-field:focus { border-color: var(--accent); }
+.sheet-footer { padding: 10px 20px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; }
+.btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; border: none; transition: opacity 0.15s; }
+.btn:active { opacity: 0.8; }
+.btn-cancel { background: var(--card2); color: var(--muted); border: 1px solid var(--border); }
+.btn-confirm { background: var(--accent); color: #000; }
+.btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 50px 20px; color: var(--muted); }
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+.empty p { font-size: 14px; line-height: 1.6; }
+
+/* TOAST */
+.toast { position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card); border: 1px solid var(--accent); color: var(--text); padding: 11px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 300; transition: transform 0.3s ease; white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.error { border-color: var(--red); }
+
+/* LOADING */
+.loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 400; gap: 14px; transition: opacity 0.3s; }
+.loading-overlay.hidden { opacity: 0; pointer-events: none; }
+.loading-logo { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+.loading-logo span { color: var(--text); }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.loading-msg { font-size: 13px; color: var(--muted); }
+
+/* ERROR STATE */
+.error-state { background: rgba(245,101,101,0.08); border: 1px solid rgba(245,101,101,0.3); border-radius: var(--r); padding: 16px; margin: 12px 0; font-size: 13px; color: var(--red); line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<!-- CONFIG BANNER — hidden once configured -->
+<div class="config-banner" id="configBanner">
+  ⚙️ <strong>Setup required:</strong> Replace the 3 values at the top of the &lt;script&gt; with your SharePoint details.
+  <a href="#" onclick="document.getElementById('configBanner').classList.add('hidden');return false;">Dismiss</a>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo">🔧 Tool<span>Track</span></div>
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loadingMsg">Connecting to SharePoint...</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">🔧 Tool<span>Track</span></div>
+  <div class="sync-time" id="syncTime"></div>
+  <button class="sync-btn" id="syncBtn" onclick="syncAll()">
+    <span class="sync-icon" id="syncIcon">↻</span>
+    <span>Sync</span>
+  </button>
+</div>
+
+<!-- SEARCH -->
+<div class="search-area">
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input type="search" id="searchInput" placeholder="Search tools or locations..." oninput="applyFilters()" autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+</div>
+
+<!-- CHIPS -->
+<div class="chips-row" id="chipsRow"></div>
+
+<!-- TABS -->
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="switchTab('tools',this)">Tools</div>
+  <div class="nav-tab" onclick="switchTab('sites',this)">By Site</div>
+  <div class="nav-tab" onclick="switchTab('log',this)">Move Log</div>
+</div>
+
+<!-- CONTENT -->
+<div class="scroll-content" id="scrollContent">
+  <div id="tabTools">
+    <div class="results-bar"><span id="resultsInfo">Loading...</span></div>
+    <div id="toolList"></div>
+  </div>
+  <div id="tabSites" style="display:none"><div id="siteList"></div></div>
+  <div id="tabLog" style="display:none"><div id="logList"></div></div>
+</div>
+
+<!-- MOVE SHEET -->
+<div class="overlay" id="moveOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Move Tool</div>
+      <div class="sheet-subtitle" id="sheetToolName"></div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-label">Current Location</div>
+      <div class="current-loc-tag"><span>📍</span><span id="sheetLocText"></span></div>
+      <div class="arrow-row">↓ Move to</div>
+      <div class="sheet-label">Select Site</div>
+      <div class="sites-grid" id="sitesGrid"></div>
+      <div class="sheet-label">Or type a custom location</div>
+      <input type="text" class="input-field" id="customLoc" placeholder="e.g. 4583 West 3rd, Tom, Bowen...">
+      <div class="sheet-label">Your name (for the log)</div>
+      <input type="text" class="input-field" id="movedByInput" placeholder="e.g. Jesse, Kevin, Chris..." autocomplete="name">
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-cancel" onclick="closeSheet()">Cancel</button>
+      <button class="btn btn-confirm" id="confirmBtn" onclick="confirmMove()">Move It →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+//  ▶  CONFIGURATION — fill these 3 values in after setup
+// ─────────────────────────────────────────────────────────────────
+const CONFIG = {
+  // Your SharePoint site URL — e.g. "https://yourcompany.sharepoint.com/sites/FieldOps"
+  siteUrl: "https://YOUR_COMPANY.sharepoint.com/sites/YOUR_SITE",
+
+  // The exact name of the Tools list you create in SharePoint
+  toolsListName: "ToolInventory",
+
+  // The exact name of the Move Log list you create in SharePoint
+  logListName: "ToolMoveLog",
+};
+// ─────────────────────────────────────────────────────────────────
+
+// Known job sites for the quick-pick grid
+const SITES = [
+  "Yard","Office","Workshop","Shop","White Sea Can",
+  "Yard - White Container","Maintenance","Repairs","Decommissioned","Scrap",
+  "3011 PGR","3140 W55th","3421 W44th","3699 Hudson","3780 PGR",
+  "4369 Erwin","4541 W3rd","4732 Belmont","4749 Belmont",
+  "4760 Belmont","4769 Belmont","4772 Belmont",
+  "6680 Balaclava","7275 Balaclava","6674 Marine"
+];
+
+// ── STATE ────────────────────────────────────────────
+let tools    = [];
+let moveLog  = [];
+let selectedId      = null;
+let selectedSiteVal = null;
+let siteFilter      = '';
+let lastSync        = null;
+let isSyncing       = false;
+
+// Persist the worker's name locally so they don't retype it every time
+const savedName = () => localStorage.getItem('tt_worker_name') || '';
+
+// ── SHAREPOINT API HELPERS ───────────────────────────
+const SP = CONFIG.siteUrl.replace(/\/$/, '');
+
+// Build the REST URL for a list
+function listUrl(listName) {
+  return `${SP}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items`;
+}
+
+// All SharePoint REST calls go through here
+async function spFetch(url, options = {}) {
+  const defaults = {
+    headers: {
+      'Accept': 'application/json;odata=nometadata',
+      'Content-Type': 'application/json;odata=nometadata',
+      'X-Requested-With': 'XMLHttpRequest',
+    }
+  };
+  const merged = { ...defaults, ...options };
+  merged.headers = { ...defaults.headers, ...(options.headers || {}) };
+
+  const res = await fetch(url, merged);
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`SharePoint error ${res.status}: ${txt.slice(0,200)}`);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+// GET the request digest token needed for writes
+async function getDigest() {
+  const data = await spFetch(`${SP}/_api/contextinfo`, { method: 'POST', body: '' });
+  return data.FormDigestValue;
+}
+
+// Fetch all items from a list (handles paging up to 500)
+async function fetchAllItems(listName, select = '') {
+  let url = listUrl(listName) + '?$top=500' + (select ? `&$select=${select}` : '') + '&$orderby=Id asc';
+  const items = [];
+  while (url) {
+    const data = await spFetch(url);
+    items.push(...(data.value || []));
+    url = data['odata.nextLink'] || null;
+  }
+  return items;
+}
+
+// ── LOAD DATA FROM SHAREPOINT ────────────────────────
+async function loadTools() {
+  const items = await fetchAllItems(
+    CONFIG.toolsListName,
+    'Id,Title,ToolNotes,Location'
+  );
+  tools = items.map(i => ({
+    spId:  i.Id,
+    name:  i.Title || '',
+    notes: i.ToolNotes || '',
+    loc:   i.Location  || '',
+  }));
+}
+
+async function loadLog() {
+  const items = await fetchAllItems(
+    CONFIG.logListName,
+    'Id,Title,FromLocation,ToLocation,MovedBy,MoveTime'
+  );
+  // Most recent first
+  moveLog = items.reverse().map(i => ({
+    name: i.Title || '',
+    from: i.FromLocation || '',
+    to:   i.ToLocation   || '',
+    by:   i.MovedBy      || '',
+    time: i.MoveTime     || '',
+  }));
+}
+
+// ── UPDATE A TOOL'S LOCATION IN SHAREPOINT ───────────
+async function updateToolLocation(spId, newLoc) {
+  const digest = await getDigest();
+  await spFetch(`${listUrl(CONFIG.toolsListName)}(${spId})`, {
+    method: 'POST',
+    headers: {
+      'X-HTTP-Method': 'MERGE',
+      'IF-MATCH': '*',
+      'X-RequestDigest': digest,
+    },
+    body: JSON.stringify({ Location: newLoc }),
+  });
+}
+
+// ── WRITE A MOVE LOG ENTRY ───────────────────────────
+async function writeLogEntry(toolName, fromLoc, toLoc, movedBy) {
+  const digest = await getDigest();
+  const now = new Date();
+  const timeStr = now.toLocaleString('en-CA', {
+    year:'numeric', month:'short', day:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+  await spFetch(listUrl(CONFIG.logListName), {
+    method: 'POST',
+    headers: { 'X-RequestDigest': digest },
+    body: JSON.stringify({
+      Title:        toolName,
+      FromLocation: fromLoc,
+      ToLocation:   toLoc,
+      MovedBy:      movedBy,
+      MoveTime:     timeStr,
+    }),
+  });
+}
+
+// ── SYNC ─────────────────────────────────────────────
+async function syncAll(quiet = false) {
+  if (isSyncing) return;
+  isSyncing = true;
+  document.getElementById('syncBtn').classList.add('syncing');
+  try {
+    await Promise.all([loadTools(), loadLog()]);
+    lastSync = new Date();
+    updateSyncTime();
+    applyFilters();
+    buildChips();
+    renderSites();
+    renderLog();
+    if (!quiet) showToast('✅ Synced — ' + tools.length + ' tools');
+  } catch(e) {
+    console.error(e);
+    showToast('⚠️ Sync failed — check connection', true);
+  }
+  isSyncing = false;
+  document.getElementById('syncBtn').classList.remove('syncing');
+}
+
+function updateSyncTime() {
+  if (!lastSync) return;
+  const h = lastSync.getHours().toString().padStart(2,'0');
+  const m = lastSync.getMinutes().toString().padStart(2,'0');
+  document.getElementById('syncTime').innerHTML = `Synced<br>${h}:${m}`;
+}
+
+// ── RENDERING ────────────────────────────────────────
+function locClass(loc) {
+  if (!loc || loc === '?') return 'unknown';
+  const l = loc.toLowerCase();
+  if (l.includes('decom') || l.includes('scrap')) return 'decom';
+  if (l.includes('repair')) return 'repair';
+  return '';
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getActiveSites() {
+  const fromTools = [...new Set(tools.map(t=>t.loc).filter(l=>l&&l!=='?'))];
+  return [...new Set([...SITES, ...fromTools])].sort();
+}
+
+function buildChips() {
+  const quickSites = getActiveSites().filter(s => [
+    'Yard','Office','Workshop',
+    '3011 PGR','3140 W55th','3421 W44th','3699 Hudson',
+    '4369 Erwin','4541 W3rd','4749 Belmont','4772 Belmont','6680 Balaclava'
+  ].includes(s));
+
+  document.getElementById('chipsRow').innerHTML =
+    `<div class="chip ${!siteFilter?'active':''}" onclick="setSiteFilter('')">All</div>` +
+    quickSites.map(s =>
+      `<div class="chip ${siteFilter===s?'active':''}" onclick="setSiteFilter('${s.replace(/'/g,"\\'")}')">📍 ${esc(s)}</div>`
+    ).join('');
+}
+
+function setSiteFilter(site) {
+  siteFilter = site;
+  buildChips();
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+  const filtered = tools.filter(t => {
+    const matchQ = !q ||
+      t.name.toLowerCase().includes(q) ||
+      (t.notes||'').toLowerCase().includes(q) ||
+      (t.loc||'').toLowerCase().includes(q);
+    const matchSite = !siteFilter || t.loc === siteFilter;
+    return matchQ && matchSite;
+  });
+
+  const el = document.getElementById('toolList');
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No tools match your search</p></div>';
+  } else {
+    el.innerHTML = filtered.map(t => {
+      const cls = locClass(t.loc);
+      return `<div class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-status-bar ${cls}"></div>
+          <div class="tool-details">
+            <div class="tool-name">${esc(t.name)}</div>
+            ${t.notes ? `<div class="tool-sub">${esc(t.notes)}</div>` : ''}
+            <div class="tool-loc-row">
+              <div class="loc-badge ${cls}">📍 ${esc(t.loc||'Unknown')}</div>
+            </div>
+          </div>
+          <button class="move-btn" onclick="openSheet('${t.spId}')">Move</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const info = document.getElementById('resultsInfo');
+  info.innerHTML = (q||siteFilter)
+    ? `<strong>${filtered.length}</strong> of ${tools.length} tools`
+    : `<strong>${tools.length}</strong> tools`;
+}
+
+function renderSites() {
+  const el = document.getElementById('siteList');
+  const sites = getActiveSites();
+  let html = '';
+  for (const site of sites) {
+    const st = tools.filter(t => t.loc === site);
+    if (!st.length) continue;
+    const shown = st.slice(0,4);
+    html += `<div class="site-card" onclick="jumpSite('${site.replace(/'/g,"\\'")}')">
+      <div class="site-card-hdr">
+        <div class="site-name">📍 ${esc(site)}</div>
+        <div class="site-pill">${st.length}</div>
+      </div>
+      <div class="site-preview">
+        ${shown.map(t=>`<div class="site-preview-item">• ${esc(t.name)}</div>`).join('')}
+        ${st.length>4 ? `<div class="site-preview-more">+${st.length-4} more</div>` : ''}
+      </div>
+    </div>`;
+  }
+  el.innerHTML = html || '<div class="empty"><div class="empty-icon">📍</div><p>No sites with tools</p></div>';
+}
+
+function renderLog() {
+  const el = document.getElementById('logList');
+  if (!moveLog.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No moves logged yet.<br>Move a tool to see history here.</p></div>';
+    return;
+  }
+  el.innerHTML = moveLog.slice(0,100).map(h =>
+    `<div class="history-card">
+      <div class="history-dot"></div>
+      <div class="history-body">
+        <div class="history-title">${esc(h.name)}</div>
+        <div class="history-route">${esc(h.from||'?')} → <strong>${esc(h.to)}</strong></div>
+        ${h.by ? `<div class="history-who">by ${esc(h.by)}</div>` : ''}
+      </div>
+      <div class="history-time">${esc(h.time)}</div>
+    </div>`
+  ).join('');
+}
+
+// ── TABS ─────────────────────────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tabTools').style.display = tab==='tools' ? 'block' : 'none';
+  document.getElementById('tabSites').style.display = tab==='sites' ? 'block' : 'none';
+  document.getElementById('tabLog').style.display   = tab==='log'   ? 'block' : 'none';
+  document.querySelector('.search-area').style.display = tab==='tools' ? 'block' : 'none';
+  document.getElementById('chipsRow').style.display    = tab==='tools' ? 'flex'  : 'none';
+  document.getElementById('scrollContent').scrollTo(0,0);
+}
+
+function jumpSite(site) {
+  switchTab('tools', document.querySelector('.nav-tab'));
+  setSiteFilter(site);
+  document.getElementById('scrollContent').scrollTo(0,0);
+}
+
+// ── MOVE SHEET ───────────────────────────────────────
+function openSheet(spId) {
+  selectedId = spId;
+  selectedSiteVal = null;
+  const t = tools.find(x => String(x.spId) === String(spId));
+  if (!t) return;
+
+  document.getElementById('sheetToolName').textContent = t.name;
+  document.getElementById('sheetLocText').textContent  = t.loc || 'Unknown';
+  document.getElementById('customLoc').value = '';
+  document.getElementById('movedByInput').value = savedName();
+
+  document.getElementById('sitesGrid').innerHTML = SITES.map(s =>
+    `<button class="site-opt ${s===t.loc?'picked':''}" onclick="pickSite('${s.replace(/'/g,"\\'")}',this)">${esc(s)}</button>`
+  ).join('');
+
+  document.getElementById('moveOverlay').classList.add('open');
+  document.querySelector('.sheet-body').scrollTo(0,0);
+}
+
+function pickSite(site, el) {
+  selectedSiteVal = site;
+  document.querySelectorAll('.site-opt').forEach(b => b.classList.remove('picked'));
+  el.classList.add('picked');
+  document.getElementById('customLoc').value = '';
+}
+
+function closeSheet() {
+  document.getElementById('moveOverlay').classList.remove('open');
+  selectedId = null;
+  selectedSiteVal = null;
+}
+
+async function confirmMove() {
+  const custom  = document.getElementById('customLoc').value.trim();
+  const newLoc  = custom || selectedSiteVal;
+  const movedBy = document.getElementById('movedByInput').value.trim();
+
+  if (!newLoc) { showToast('⚠️ Pick or type a location first', true); return; }
+
+  const t = tools.find(x => String(x.spId) === String(selectedId));
+  if (!t) return;
+
+  if (movedBy) localStorage.setItem('tt_worker_name', movedBy);
+
+  const confirmBtn = document.getElementById('confirmBtn');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Saving...';
+
+  const oldLoc = t.loc;
+  try {
+    await updateToolLocation(t.spId, newLoc);
+    await writeLogEntry(t.name, oldLoc, newLoc, movedBy);
+
+    t.loc = newLoc;
+    moveLog.unshift({ name: t.name, from: oldLoc, to: newLoc, by: movedBy, time: 'just now' });
+
+    closeSheet();
+    applyFilters();
+    buildChips();
+    renderSites();
+    renderLog();
+    updateSyncTime();
+
+    const short = t.name.length > 26 ? t.name.slice(0,26)+'…' : t.name;
+    showToast(`✅ ${short} → ${newLoc}`);
+  } catch(e) {
+    console.error(e);
+    showToast('⚠️ Save failed — check connection', true);
+  }
+
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = 'Move It →';
+}
+
+// ── TOAST ────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, isError = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.toggle('error', isError);
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ── INIT ─────────────────────────────────────────────
+document.getElementById('moveOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSheet();
+});
+
+if (CONFIG.siteUrl.includes('YOUR_COMPANY')) {
+  document.getElementById('configBanner').classList.remove('hidden');
+}
+
+async function init() {
+  try {
+    await syncAll(true);
+  } catch(e) {
+    document.getElementById('loadingMsg').textContent = 'Could not connect to SharePoint.';
+    showToast('⚠️ Could not connect to SharePoint', true);
+  }
+  document.getElementById('loadingOverlay').classList.add('hidden');
+  setTimeout(() => document.getElementById('loadingOverlay').style.display='none', 400);
+}
+
+init();
+</script>
+</body>
+</html>
