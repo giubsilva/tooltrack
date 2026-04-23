@@ -92,7 +92,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 /* TABS */
 .nav-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; margin-top: 10px; padding: 0 16px; }
 .nav-tab {
-  flex: 1; padding: 10px 0; text-align: center; font-size: 12px; font-weight: 600;
+  flex: 1; padding: 10px 0; text-align: center; font-size: 11px; font-weight: 600;
   letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted);
   cursor: pointer; border-bottom: 2.5px solid transparent; transition: all 0.15s;
 }
@@ -124,7 +124,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .move-btn { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 13px; color: var(--text); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
 .move-btn:active { background: var(--accent); border-color: var(--accent); color: #000; }
 
-/* SITE CARDS */
+/* SITE CARDS (By Site tab) */
 .site-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; overflow: hidden; }
 .site-card:active { border-color: var(--accent); }
 .site-card-hdr { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--border); }
@@ -133,6 +133,37 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .site-preview { padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 3px; }
 .site-preview-item { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .site-preview-more { font-size: 12px; color: var(--accent); margin-top: 2px; }
+
+/* MANAGE SITES TAB */
+.manage-section-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--muted); font-weight: 600; margin: 14px 0 8px;
+}
+.manage-section-label:first-child { margin-top: 4px; }
+.add-site-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 16px; }
+.add-site-form .input-field { margin-bottom: 10px; }
+.add-site-form .input-field:last-of-type { margin-bottom: 12px; }
+.btn-add-site {
+  width: 100%; padding: 13px; border-radius: 9px; font-size: 14px; font-weight: 600;
+  font-family: inherit; cursor: pointer; border: none; background: var(--accent);
+  color: #000; transition: opacity 0.15s;
+}
+.btn-add-site:active { opacity: 0.75; }
+.btn-add-site:disabled { opacity: 0.4; cursor: not-allowed; }
+.manage-site-row {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+}
+.manage-site-info { flex: 1; min-width: 0; }
+.manage-site-name { font-size: 14px; font-weight: 500; }
+.manage-site-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.manage-site-count { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); padding: 2px 8px; border-radius: 6px; flex-shrink: 0; }
+.btn-remove-site {
+  background: none; border: 1px solid var(--border); border-radius: 7px;
+  padding: 7px 11px; color: var(--red); font-size: 12px; font-weight: 600;
+  font-family: inherit; cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+}
+.btn-remove-site:active { background: rgba(245,101,101,0.12); border-color: var(--red); }
 
 /* HISTORY */
 .history-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
@@ -233,6 +264,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   <div class="nav-tab active" onclick="switchTab('tools',this)">Tools</div>
   <div class="nav-tab" onclick="switchTab('sites',this)">By Site</div>
   <div class="nav-tab" onclick="switchTab('log',this)">Move Log</div>
+  <div class="nav-tab" onclick="switchTab('manage',this)">Sites +</div>
 </div>
 
 <!-- CONTENT -->
@@ -243,6 +275,16 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   </div>
   <div id="tabSites" style="display:none"><div id="siteList"></div></div>
   <div id="tabLog" style="display:none"><div id="logList"></div></div>
+  <div id="tabManage" style="display:none">
+    <div class="manage-section-label">Add New Site</div>
+    <div class="add-site-form">
+      <input type="text" class="input-field" id="newSiteName" placeholder="Site name, e.g. 4583 West 3rd" autocomplete="off" autocorrect="off" spellcheck="false">
+      <input type="text" class="input-field" id="newSiteAddedBy" placeholder="Your name" autocomplete="name">
+      <button class="btn-add-site" id="addSiteBtn" onclick="addSite()">Add Site</button>
+    </div>
+    <div class="manage-section-label">Current Sites</div>
+    <div id="manageSiteList"></div>
+  </div>
 </div>
 
 <!-- MOVE SHEET -->
@@ -282,19 +324,10 @@ const CONFIG = {
 };
 // ─────────────────────────────────────────────────────────────────
 
-// Known job sites for the quick-pick grid
-const SITES = [
-  "Yard","Office","Workshop","Shop","White Sea Can",
-  "Yard - White Container","Maintenance","Repairs","Decommissioned","Scrap",
-  "3011 PGR","3140 W55th","3421 W44th","3699 Hudson","3780 PGR",
-  "4369 Erwin","4541 W3rd","4732 Belmont","4749 Belmont",
-  "4760 Belmont","4769 Belmont","4772 Belmont",
-  "6680 Balaclava","7275 Balaclava","6674 Marine"
-];
-
 // ── STATE ────────────────────────────────────────────
-let tools   = [];
-let moveLog = [];
+let tools            = [];
+let moveLog          = [];
+let sites            = [];   // loaded from JobSites tab in the Sheet
 let selectedToolName = null;
 let selectedSiteVal  = null;
 let siteFilter       = '';
@@ -311,15 +344,16 @@ async function fetchData() {
   return res.json();
 }
 
-async function postMove(toolName, fromLoc, newLoc, movedBy) {
+async function post(body) {
   const res = await fetch(CONFIG.scriptUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ action: 'move', toolName, fromLoc, newLoc, movedBy }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
+  return data;
 }
 
 // ── SYNC ─────────────────────────────────────────────
@@ -332,12 +366,14 @@ async function syncAll(quiet = false) {
     const data = await fetchData();
     tools   = data.tools  || [];
     moveLog = data.log    || [];
+    sites   = data.sites  || [];
     lastSync = new Date();
     updateSyncTime();
     applyFilters();
     buildChips();
     renderSites();
     renderLog();
+    renderManage();
     if (!quiet) showToast('✅ Synced — ' + tools.length + ' tools');
   } catch(e) {
     console.error(e);
@@ -368,21 +404,18 @@ function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function getActiveSites() {
-  const fromTools = [...new Set(tools.map(t => t.loc).filter(l => l && l !== '?'))];
-  return [...new Set([...SITES, ...fromTools])].sort();
+function siteNames() {
+  // Names from the Sheet, plus any tool locations not yet listed, sorted
+  const sheetNames = sites.map(s => s.name);
+  const toolLocs   = tools.map(t => t.loc).filter(l => l && l !== '?');
+  return [...new Set([...sheetNames, ...toolLocs])].sort();
 }
 
 function buildChips() {
-  const quickSites = getActiveSites().filter(s => [
-    'Yard','Office','Workshop',
-    '3011 PGR','3140 W55th','3421 W44th','3699 Hudson',
-    '4369 Erwin','4541 W3rd','4749 Belmont','4772 Belmont','6680 Balaclava'
-  ].includes(s));
-
+  const names = siteNames();
   document.getElementById('chipsRow').innerHTML =
     `<div class="chip ${!siteFilter?'active':''}" onclick="setSiteFilter('')">All</div>` +
-    quickSites.map(s =>
+    names.map(s =>
       `<div class="chip ${siteFilter===s?'active':''}" onclick="setSiteFilter('${s.replace(/'/g,"\\'")}')">📍 ${esc(s)}</div>`
     ).join('');
 }
@@ -434,9 +467,9 @@ function applyFilters() {
 
 function renderSites() {
   const el = document.getElementById('siteList');
-  const sites = getActiveSites();
+  const names = siteNames();
   let html = '';
-  for (const site of sites) {
+  for (const site of names) {
     const st = tools.filter(t => t.loc === site);
     if (!st.length) continue;
     const shown = st.slice(0,4);
@@ -473,14 +506,41 @@ function renderLog() {
   ).join('');
 }
 
+function renderManage() {
+  // Pre-fill the "your name" field from localStorage
+  const addedByInput = document.getElementById('newSiteAddedBy');
+  if (!addedByInput.value) addedByInput.value = savedName();
+
+  const el = document.getElementById('manageSiteList');
+  if (!sites.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📍</div><p>No sites yet.<br>Add one above.</p></div>';
+    return;
+  }
+
+  el.innerHTML = sites.map(s => {
+    const toolCount = tools.filter(t => t.loc === s.name).length;
+    return `<div class="manage-site-row">
+      <div class="manage-site-info">
+        <div class="manage-site-name">📍 ${esc(s.name)}</div>
+        <div class="manage-site-meta">Added by ${esc(s.addedBy||'—')} · ${esc(s.addedAt||'')}</div>
+      </div>
+      ${toolCount > 0
+        ? `<div class="manage-site-count">${toolCount} tool${toolCount>1?'s':''}</div>`
+        : `<button class="btn-remove-site" onclick="removeSite('${s.name.replace(/'/g,"\\'")}')">Remove</button>`
+      }
+    </div>`;
+  }).join('');
+}
+
 // ── TABS ─────────────────────────────────────────────
 
 function switchTab(tab, el) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('tabTools').style.display = tab==='tools' ? 'block' : 'none';
-  document.getElementById('tabSites').style.display = tab==='sites' ? 'block' : 'none';
-  document.getElementById('tabLog').style.display   = tab==='log'   ? 'block' : 'none';
+  document.getElementById('tabTools').style.display  = tab==='tools'  ? 'block' : 'none';
+  document.getElementById('tabSites').style.display  = tab==='sites'  ? 'block' : 'none';
+  document.getElementById('tabLog').style.display    = tab==='log'    ? 'block' : 'none';
+  document.getElementById('tabManage').style.display = tab==='manage' ? 'block' : 'none';
   document.querySelector('.search-area').style.display = tab==='tools' ? 'block' : 'none';
   document.getElementById('chipsRow').style.display    = tab==='tools' ? 'flex'  : 'none';
   document.getElementById('scrollContent').scrollTo(0,0);
@@ -505,7 +565,7 @@ function openSheet(toolName) {
   document.getElementById('customLoc').value = '';
   document.getElementById('movedByInput').value = savedName();
 
-  document.getElementById('sitesGrid').innerHTML = SITES.map(s =>
+  document.getElementById('sitesGrid').innerHTML = siteNames().map(s =>
     `<button class="site-opt ${s===t.loc?'picked':''}" onclick="pickSite('${s.replace(/'/g,"\\'")}',this)">${esc(s)}</button>`
   ).join('');
 
@@ -544,9 +604,8 @@ async function confirmMove() {
 
   const oldLoc = t.loc;
   try {
-    await postMove(t.name, oldLoc, newLoc, movedBy);
+    await post({ action: 'move', toolName: t.name, fromLoc: oldLoc, newLoc, movedBy });
 
-    // Update local state immediately — no need to re-fetch
     t.loc = newLoc;
     moveLog.unshift({ name: t.name, from: oldLoc, to: newLoc, by: movedBy, time: 'just now' });
 
@@ -555,7 +614,6 @@ async function confirmMove() {
     buildChips();
     renderSites();
     renderLog();
-    updateSyncTime();
 
     const short = t.name.length > 26 ? t.name.slice(0,26)+'…' : t.name;
     showToast(`✅ ${short} → ${newLoc}`);
@@ -566,6 +624,66 @@ async function confirmMove() {
 
   confirmBtn.disabled = false;
   confirmBtn.textContent = 'Move It →';
+}
+
+// ── MANAGE SITES ─────────────────────────────────────
+
+async function addSite() {
+  const siteName = document.getElementById('newSiteName').value.trim();
+  const addedBy  = document.getElementById('newSiteAddedBy').value.trim();
+
+  if (!siteName) { showToast('⚠️ Enter a site name', true); return; }
+  if (!addedBy)  { showToast('⚠️ Enter your name', true); return; }
+
+  if (sites.some(s => s.name.toLowerCase() === siteName.toLowerCase())) {
+    showToast('⚠️ That site already exists', true); return;
+  }
+
+  if (addedBy) localStorage.setItem('tt_worker_name', addedBy);
+
+  const btn = document.getElementById('addSiteBtn');
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  try {
+    await post({ action: 'addSite', siteName, addedBy });
+
+    const now = new Date();
+    const timeStr = now.toLocaleString('en-CA', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    sites.push({ name: siteName, addedBy, addedAt: timeStr });
+
+    document.getElementById('newSiteName').value = '';
+    buildChips();
+    renderManage();
+    showToast(`✅ "${siteName}" added`);
+  } catch(e) {
+    console.error(e);
+    showToast('⚠️ Failed to add site — check connection', true);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Add Site';
+}
+
+async function removeSite(siteName) {
+  const toolCount = tools.filter(t => t.loc === siteName).length;
+  if (toolCount > 0) {
+    showToast(`⚠️ Move the ${toolCount} tool${toolCount>1?'s':''} off this site first`, true);
+    return;
+  }
+
+  try {
+    await post({ action: 'removeSite', siteName });
+
+    sites = sites.filter(s => s.name !== siteName);
+    if (siteFilter === siteName) siteFilter = '';
+    buildChips();
+    renderManage();
+    showToast(`✅ "${siteName}" removed`);
+  } catch(e) {
+    console.error(e);
+    showToast('⚠️ Failed to remove site — check connection', true);
+  }
 }
 
 // ── TOAST ────────────────────────────────────────────
