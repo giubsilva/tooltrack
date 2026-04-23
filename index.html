@@ -158,7 +158,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .current-loc-tag { display: inline-flex; align-items: center; gap: 7px; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 500; margin-bottom: 16px; }
 .arrow-row { text-align: center; color: var(--muted); font-size: 18px; margin-bottom: 14px; }
 .sites-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
-.site-opt { background: var(--card2); border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 12px; font-size: 13px; font-weight: 500; font-family: inherit; color: var(--text); cursor: pointer; text-align: left; transition: all 0.15px; line-height: 1.2; }
+.site-opt { background: var(--card2); border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 12px; font-size: 13px; font-weight: 500; font-family: inherit; color: var(--text); cursor: pointer; text-align: left; transition: all 0.15s; line-height: 1.2; }
 .site-opt:active { border-color: var(--accent); }
 .site-opt.picked { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
 .input-field { width: 100%; background: var(--card2); border: 1.5px solid var(--border); border-radius: 9px; padding: 11px 14px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; margin-bottom: 12px; transition: border-color 0.2s; }
@@ -196,7 +196,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 
 <!-- CONFIG BANNER — hidden once configured -->
 <div class="config-banner" id="configBanner">
-  ⚙️ <strong>Setup required:</strong> Replace the 3 values at the top of the &lt;script&gt; with your SharePoint details.
+  ⚙️ <strong>Setup required:</strong> Paste your Google Apps Script URL into CONFIG.scriptUrl at the top of the &lt;script&gt;.
   <a href="#" onclick="document.getElementById('configBanner').classList.add('hidden');return false;">Dismiss</a>
 </div>
 
@@ -204,7 +204,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-logo">🔧 Tool<span>Track</span></div>
   <div class="spinner"></div>
-  <div class="loading-msg" id="loadingMsg">Connecting to SharePoint...</div>
+  <div class="loading-msg" id="loadingMsg">Loading tools...</div>
 </div>
 
 <!-- HEADER -->
@@ -275,17 +275,10 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 
 <script>
 // ─────────────────────────────────────────────────────────────────
-//  ▶  CONFIGURATION — fill these 3 values in after setup
+//  ▶  CONFIGURATION — paste your Apps Script URL below
 // ─────────────────────────────────────────────────────────────────
 const CONFIG = {
-  // Your SharePoint site URL — e.g. "https://yourcompany.sharepoint.com/sites/FieldOps"
-  siteUrl: "https://YOUR_COMPANY.sharepoint.com/sites/YOUR_SITE",
-
-  // The exact name of the Tools list you create in SharePoint
-  toolsListName: "ToolInventory",
-
-  // The exact name of the Move Log list you create in SharePoint
-  logListName: "ToolMoveLog",
+  scriptUrl: "https://script.google.com/macros/s/AKfycbxRB3UqSIUbLaWI9t5N9W1y6WkbTMSWhumm0g8zi4rVOAP7KfEktUK-GBD70D-Dxp6M/exec",
 };
 // ─────────────────────────────────────────────────────────────────
 
@@ -300,135 +293,45 @@ const SITES = [
 ];
 
 // ── STATE ────────────────────────────────────────────
-let tools    = [];
-let moveLog  = [];
-let selectedId      = null;
-let selectedSiteVal = null;
-let siteFilter      = '';
-let lastSync        = null;
-let isSyncing       = false;
+let tools   = [];
+let moveLog = [];
+let selectedToolName = null;
+let selectedSiteVal  = null;
+let siteFilter       = '';
+let lastSync         = null;
+let isSyncing        = false;
 
-// Persist the worker's name locally so they don't retype it every time
 const savedName = () => localStorage.getItem('tt_worker_name') || '';
 
-// ── SHAREPOINT API HELPERS ───────────────────────────
-const SP = CONFIG.siteUrl.replace(/\/$/, '');
+// ── API CALLS ────────────────────────────────────────
 
-// Build the REST URL for a list
-function listUrl(listName) {
-  return `${SP}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items`;
-}
-
-// All SharePoint REST calls go through here
-async function spFetch(url, options = {}) {
-  const defaults = {
-    headers: {
-      'Accept': 'application/json;odata=nometadata',
-      'Content-Type': 'application/json;odata=nometadata',
-      'X-Requested-With': 'XMLHttpRequest',
-    }
-  };
-  const merged = { ...defaults, ...options };
-  merged.headers = { ...defaults.headers, ...(options.headers || {}) };
-
-  const res = await fetch(url, merged);
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`SharePoint error ${res.status}: ${txt.slice(0,200)}`);
-  }
-  if (res.status === 204) return null;
+async function fetchData() {
+  const res = await fetch(CONFIG.scriptUrl);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
-// GET the request digest token needed for writes
-async function getDigest() {
-  const data = await spFetch(`${SP}/_api/contextinfo`, { method: 'POST', body: '' });
-  return data.FormDigestValue;
-}
-
-// Fetch all items from a list (handles paging up to 500)
-async function fetchAllItems(listName, select = '') {
-  let url = listUrl(listName) + '?$top=500' + (select ? `&$select=${select}` : '') + '&$orderby=Id asc';
-  const items = [];
-  while (url) {
-    const data = await spFetch(url);
-    items.push(...(data.value || []));
-    url = data['odata.nextLink'] || null;
-  }
-  return items;
-}
-
-// ── LOAD DATA FROM SHAREPOINT ────────────────────────
-async function loadTools() {
-  const items = await fetchAllItems(
-    CONFIG.toolsListName,
-    'Id,Title,ToolNotes,Location'
-  );
-  tools = items.map(i => ({
-    spId:  i.Id,
-    name:  i.Title || '',
-    notes: i.ToolNotes || '',
-    loc:   i.Location  || '',
-  }));
-}
-
-async function loadLog() {
-  const items = await fetchAllItems(
-    CONFIG.logListName,
-    'Id,Title,FromLocation,ToLocation,MovedBy,MoveTime'
-  );
-  // Most recent first
-  moveLog = items.reverse().map(i => ({
-    name: i.Title || '',
-    from: i.FromLocation || '',
-    to:   i.ToLocation   || '',
-    by:   i.MovedBy      || '',
-    time: i.MoveTime     || '',
-  }));
-}
-
-// ── UPDATE A TOOL'S LOCATION IN SHAREPOINT ───────────
-async function updateToolLocation(spId, newLoc) {
-  const digest = await getDigest();
-  await spFetch(`${listUrl(CONFIG.toolsListName)}(${spId})`, {
+async function postMove(toolName, fromLoc, newLoc, movedBy) {
+  const res = await fetch(CONFIG.scriptUrl, {
     method: 'POST',
-    headers: {
-      'X-HTTP-Method': 'MERGE',
-      'IF-MATCH': '*',
-      'X-RequestDigest': digest,
-    },
-    body: JSON.stringify({ Location: newLoc }),
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'move', toolName, fromLoc, newLoc, movedBy }),
   });
-}
-
-// ── WRITE A MOVE LOG ENTRY ───────────────────────────
-async function writeLogEntry(toolName, fromLoc, toLoc, movedBy) {
-  const digest = await getDigest();
-  const now = new Date();
-  const timeStr = now.toLocaleString('en-CA', {
-    year:'numeric', month:'short', day:'numeric',
-    hour:'2-digit', minute:'2-digit'
-  });
-  await spFetch(listUrl(CONFIG.logListName), {
-    method: 'POST',
-    headers: { 'X-RequestDigest': digest },
-    body: JSON.stringify({
-      Title:        toolName,
-      FromLocation: fromLoc,
-      ToLocation:   toLoc,
-      MovedBy:      movedBy,
-      MoveTime:     timeStr,
-    }),
-  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
 }
 
 // ── SYNC ─────────────────────────────────────────────
+
 async function syncAll(quiet = false) {
   if (isSyncing) return;
   isSyncing = true;
   document.getElementById('syncBtn').classList.add('syncing');
   try {
-    await Promise.all([loadTools(), loadLog()]);
+    const data = await fetchData();
+    tools   = data.tools  || [];
+    moveLog = data.log    || [];
     lastSync = new Date();
     updateSyncTime();
     applyFilters();
@@ -452,6 +355,7 @@ function updateSyncTime() {
 }
 
 // ── RENDERING ────────────────────────────────────────
+
 function locClass(loc) {
   if (!loc || loc === '?') return 'unknown';
   const l = loc.toLowerCase();
@@ -465,7 +369,7 @@ function esc(s) {
 }
 
 function getActiveSites() {
-  const fromTools = [...new Set(tools.map(t=>t.loc).filter(l=>l&&l!=='?'))];
+  const fromTools = [...new Set(tools.map(t => t.loc).filter(l => l && l !== '?'))];
   return [...new Set([...SITES, ...fromTools])].sort();
 }
 
@@ -516,7 +420,7 @@ function applyFilters() {
               <div class="loc-badge ${cls}">📍 ${esc(t.loc||'Unknown')}</div>
             </div>
           </div>
-          <button class="move-btn" onclick="openSheet('${t.spId}')">Move</button>
+          <button class="move-btn" onclick="openSheet('${esc(t.name)}')">Move</button>
         </div>
       </div>`;
     }).join('');
@@ -542,7 +446,7 @@ function renderSites() {
         <div class="site-pill">${st.length}</div>
       </div>
       <div class="site-preview">
-        ${shown.map(t=>`<div class="site-preview-item">• ${esc(t.name)}</div>`).join('')}
+        ${shown.map(t => `<div class="site-preview-item">• ${esc(t.name)}</div>`).join('')}
         ${st.length>4 ? `<div class="site-preview-more">+${st.length-4} more</div>` : ''}
       </div>
     </div>`;
@@ -570,6 +474,7 @@ function renderLog() {
 }
 
 // ── TABS ─────────────────────────────────────────────
+
 function switchTab(tab, el) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
@@ -588,10 +493,11 @@ function jumpSite(site) {
 }
 
 // ── MOVE SHEET ───────────────────────────────────────
-function openSheet(spId) {
-  selectedId = spId;
-  selectedSiteVal = null;
-  const t = tools.find(x => String(x.spId) === String(spId));
+
+function openSheet(toolName) {
+  selectedToolName = toolName;
+  selectedSiteVal  = null;
+  const t = tools.find(x => x.name === toolName);
   if (!t) return;
 
   document.getElementById('sheetToolName').textContent = t.name;
@@ -616,8 +522,8 @@ function pickSite(site, el) {
 
 function closeSheet() {
   document.getElementById('moveOverlay').classList.remove('open');
-  selectedId = null;
-  selectedSiteVal = null;
+  selectedToolName = null;
+  selectedSiteVal  = null;
 }
 
 async function confirmMove() {
@@ -627,7 +533,7 @@ async function confirmMove() {
 
   if (!newLoc) { showToast('⚠️ Pick or type a location first', true); return; }
 
-  const t = tools.find(x => String(x.spId) === String(selectedId));
+  const t = tools.find(x => x.name === selectedToolName);
   if (!t) return;
 
   if (movedBy) localStorage.setItem('tt_worker_name', movedBy);
@@ -638,9 +544,9 @@ async function confirmMove() {
 
   const oldLoc = t.loc;
   try {
-    await updateToolLocation(t.spId, newLoc);
-    await writeLogEntry(t.name, oldLoc, newLoc, movedBy);
+    await postMove(t.name, oldLoc, newLoc, movedBy);
 
+    // Update local state immediately — no need to re-fetch
     t.loc = newLoc;
     moveLog.unshift({ name: t.name, from: oldLoc, to: newLoc, by: movedBy, time: 'just now' });
 
@@ -663,6 +569,7 @@ async function confirmMove() {
 }
 
 // ── TOAST ────────────────────────────────────────────
+
 let toastTimer;
 function showToast(msg, isError = false) {
   const el = document.getElementById('toast');
@@ -674,11 +581,12 @@ function showToast(msg, isError = false) {
 }
 
 // ── INIT ─────────────────────────────────────────────
+
 document.getElementById('moveOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeSheet();
 });
 
-if (CONFIG.siteUrl.includes('YOUR_COMPANY')) {
+if (CONFIG.scriptUrl.includes('YOUR_APPS_SCRIPT')) {
   document.getElementById('configBanner').classList.remove('hidden');
 }
 
@@ -686,8 +594,8 @@ async function init() {
   try {
     await syncAll(true);
   } catch(e) {
-    document.getElementById('loadingMsg').textContent = 'Could not connect to SharePoint.';
-    showToast('⚠️ Could not connect to SharePoint', true);
+    document.getElementById('loadingMsg').textContent = 'Could not load data.';
+    showToast('⚠️ Could not connect', true);
   }
   document.getElementById('loadingOverlay').classList.add('hidden');
   setTimeout(() => document.getElementById('loadingOverlay').style.display='none', 400);
