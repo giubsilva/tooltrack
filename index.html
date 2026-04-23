@@ -51,69 +51,55 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .sync-btn.syncing .sync-icon { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* SEARCH */
-.search-area { padding: 10px 16px 0; flex-shrink: 0; }
-.search-wrap { position: relative; }
+/* ACTION BAR — sits between header and tabs, swaps content per tab */
+.action-bar { padding: 10px 16px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* Search + filter bar (Tools / By Site / Move Log tabs) */
+#searchFilterBar { display: flex; align-items: center; gap: 8px; width: 100%; }
+
+.search-wrap { position: relative; flex: 1; min-width: 0; }
 .search-wrap input {
   width: 100%; background: var(--card); border: 1.5px solid var(--border);
-  border-radius: 10px; padding: 11px 14px 11px 42px; color: var(--text);
-  font-size: 15px; font-family: inherit; outline: none; transition: border-color 0.2s;
+  border-radius: 10px; padding: 10px 14px 10px 40px; color: var(--text);
+  font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s;
 }
 .search-wrap input:focus { border-color: var(--accent); }
 .search-wrap input::placeholder { color: var(--muted); }
-.search-ico { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+.search-ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; }
 
-/* FILTER ROW — wraps both desktop chips and mobile dropdown */
-#filterRow { flex-shrink: 0; }
-
-/* Mobile / tablet filter: All button + select dropdown */
-.filter-mobile {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px 0;
+/* All button */
+.all-btn {
+  background: var(--card); border: 1.5px solid var(--border); border-radius: 20px;
+  padding: 8px 16px; font-size: 12px; font-weight: 600; color: var(--muted);
+  white-space: nowrap; cursor: pointer; flex-shrink: 0; font-family: inherit;
+  transition: all 0.15s;
 }
+.all-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.all-btn:active { opacity: 0.7; }
+
+/* Site dropdown */
 .site-select {
+  background: var(--card); border: 1.5px solid var(--border); border-radius: 20px;
+  padding: 8px 14px; color: var(--text); font-size: 12px; font-weight: 500;
+  font-family: inherit; outline: none; cursor: pointer; min-width: 0;
   flex: 1;
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
-  padding: 6px 14px;
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 500;
-  font-family: inherit;
-  outline: none;
-  cursor: pointer;
-  min-width: 0;
 }
 .site-select:focus { border-color: var(--accent); }
 .site-select option { background: #1a1e26; color: var(--text); }
 
-/* Desktop filter: arrow buttons + scrollable chips */
-.filter-desktop { display: none; align-items: center; padding: 10px 16px 0; gap: 6px; }
-.chip-arrow {
-  background: var(--card); border: 1px solid var(--border); border-radius: 50%;
-  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--text); font-size: 18px; flex-shrink: 0;
-  transition: background 0.15s; line-height: 1; padding: 0;
+/* Add site bar (Sites+ tab) */
+#addSiteBar { display: none; align-items: center; gap: 8px; width: 100%; }
+#addSiteBar .input-field { margin-bottom: 0; flex: 1; min-width: 0; padding: 10px 14px; }
+.btn-add-site {
+  flex-shrink: 0; padding: 10px 18px; border-radius: 9px; font-size: 14px;
+  font-weight: 600; font-family: inherit; cursor: pointer; border: none;
+  background: var(--accent); color: #000; white-space: nowrap; transition: opacity 0.15s;
 }
-.chip-arrow:hover { background: var(--border); }
-.filter-desktop .chips-row { padding: 0; flex: 1; min-width: 0; overflow: hidden; }
-
-/* CHIPS */
-.chips-row { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; }
-.chips-row::-webkit-scrollbar { display: none; }
-.chip {
-  background: var(--card); border: 1px solid var(--border); border-radius: 20px;
-  padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--muted);
-  white-space: nowrap; cursor: pointer; transition: all 0.15s; flex-shrink: 0;
-}
-.chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
-.chip:active { opacity: 0.7; }
+.btn-add-site:active { opacity: 0.75; }
+.btn-add-site:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* TABS */
-.nav-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; margin-top: 10px; padding: 0 16px; }
+.nav-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 16px; }
 .nav-tab {
   flex: 1; padding: 10px 0; text-align: center; font-size: 11px; font-weight: 600;
   letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted);
@@ -125,7 +111,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 10px 16px calc(16px + var(--safe-bottom)); }
 
 /* RESULTS BAR */
-.results-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 0 8px; font-size: 11px; color: var(--muted); }
+.results-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 8px; font-size: 11px; color: var(--muted); }
 .results-bar strong { color: var(--accent); }
 
 /* TOOL CARD */
@@ -147,7 +133,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .move-btn { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 13px; color: var(--text); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
 .move-btn:active { background: var(--accent); border-color: var(--accent); color: #000; }
 
-/* SITE CARDS (By Site tab) */
+/* SITE CARDS */
 .site-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; overflow: hidden; }
 .site-card:active { border-color: var(--accent); }
 .site-card-hdr { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--border); }
@@ -157,25 +143,8 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .site-preview-item { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .site-preview-more { font-size: 12px; color: var(--accent); margin-top: 2px; }
 
-/* LOG SEARCH */
-.log-search { margin: 6px 0 10px; }
-
 /* MANAGE SITES TAB */
-.manage-section-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
-  color: var(--muted); font-weight: 600; margin: 14px 0 8px;
-}
-.manage-section-label:first-child { margin-top: 4px; }
-.add-site-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 16px; }
-.add-site-form .input-field { margin-bottom: 10px; }
-.add-site-form .input-field:last-of-type { margin-bottom: 12px; }
-.btn-add-site {
-  width: 100%; padding: 13px; border-radius: 9px; font-size: 14px; font-weight: 600;
-  font-family: inherit; cursor: pointer; border: none; background: var(--accent);
-  color: #000; transition: opacity 0.15s;
-}
-.btn-add-site:active { opacity: 0.75; }
-.btn-add-site:disabled { opacity: 0.4; cursor: not-allowed; }
+.manage-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 600; margin: 4px 0 10px; }
 .manage-site-row {
   background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
   padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
@@ -250,13 +219,17 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 
 /* ── DESKTOP / LAPTOP (≥ 1024px) ──────────────────── */
 @media (min-width: 1024px) {
-  /* Show arrow-chips, hide dropdown */
-  .filter-desktop { display: flex; }
-  .filter-mobile  { display: none; }
+  /* Search takes 25% width, filter fills rest */
+  .search-wrap { flex: 0 0 25%; max-width: 25%; }
+  .site-select { flex: 0 1 260px; }
 
   /* Two-column tool list */
   #toolList { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   #toolList .tool-card { margin-bottom: 0; }
+
+  /* Two-column site cards */
+  #siteList { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  #siteList .site-card { margin-bottom: 0; }
 }
 </style>
 </head>
@@ -274,34 +247,33 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   <div class="logo">🔧 Tool<span>Track</span></div>
   <div class="sync-time" id="syncTime"></div>
   <button class="sync-btn" id="syncBtn" onclick="syncAll()">
-    <span class="sync-icon" id="syncIcon">↻</span>
+    <span class="sync-icon">↻</span>
     <span>Sync</span>
   </button>
 </div>
 
-<!-- SEARCH (tools tab only) -->
-<div class="search-area" id="toolsSearch">
-  <div class="search-wrap">
-    <span class="search-ico">🔍</span>
-    <input type="search" id="searchInput" placeholder="Search tools or locations..." oninput="applyFilters()" autocomplete="off" autocorrect="off" spellcheck="false">
-  </div>
-</div>
+<!-- ACTION BAR — swaps between search+filter and add-site form -->
+<div class="action-bar" id="actionBar">
 
-<!-- FILTER ROW -->
-<div id="filterRow">
-  <!-- Desktop: scroll arrows + chips -->
-  <div class="filter-desktop">
-    <button class="chip-arrow" onclick="scrollChips(-1)">&#8249;</button>
-    <div class="chips-row" id="chipsRow"></div>
-    <button class="chip-arrow" onclick="scrollChips(1)">&#8250;</button>
-  </div>
-  <!-- Mobile / tablet: All button + dropdown -->
-  <div class="filter-mobile">
-    <button class="chip active" id="allChipMobile" onclick="setSiteFilter('')">All</button>
+  <!-- Search + filter (visible on Tools / By Site / Move Log tabs) -->
+  <div id="searchFilterBar">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input type="search" id="mainSearchInput" placeholder="Search..." oninput="onSearchInput()" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <button class="all-btn active" id="allBtn" onclick="setSiteFilter('')">All</button>
     <select class="site-select" id="siteSelect" onchange="setSiteFilterFromDropdown(this)">
       <option value="">All Sites</option>
     </select>
   </div>
+
+  <!-- Add site form (visible on Sites+ tab only) -->
+  <div id="addSiteBar">
+    <input type="text" class="input-field" id="newSiteName" placeholder="New site name" autocomplete="off" autocorrect="off" spellcheck="false">
+    <input type="text" class="input-field" id="newSiteAddedBy" placeholder="Your name" autocomplete="name">
+    <button class="btn-add-site" id="addSiteBtn" onclick="addSite()">Add Site</button>
+  </div>
+
 </div>
 
 <!-- TABS -->
@@ -314,6 +286,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 
 <!-- CONTENT -->
 <div class="scroll-content" id="scrollContent">
+
   <div id="tabTools">
     <div class="results-bar"><span id="resultsInfo">Loading...</span></div>
     <div id="toolList"></div>
@@ -324,25 +297,14 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   </div>
 
   <div id="tabLog" style="display:none">
-    <div class="log-search">
-      <div class="search-wrap">
-        <span class="search-ico">🔍</span>
-        <input type="search" id="logSearchInput" placeholder="Search tool, location or person..." oninput="applyLogFilter()" autocomplete="off" autocorrect="off" spellcheck="false">
-      </div>
-    </div>
     <div id="logList"></div>
   </div>
 
   <div id="tabManage" style="display:none">
-    <div class="manage-section-label">Add New Site</div>
-    <div class="add-site-form">
-      <input type="text" class="input-field" id="newSiteName" placeholder="Site name, e.g. 4583 West 3rd" autocomplete="off" autocorrect="off" spellcheck="false">
-      <input type="text" class="input-field" id="newSiteAddedBy" placeholder="Your name" autocomplete="name">
-      <button class="btn-add-site" id="addSiteBtn" onclick="addSite()">Add Site</button>
-    </div>
     <div class="manage-section-label">Current Sites</div>
     <div id="manageSiteList"></div>
   </div>
+
 </div>
 
 <!-- MOVE SHEET -->
@@ -373,12 +335,11 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 
 <script>
 // ─────────────────────────────────────────────────────────────────
-//  ▶  CONFIGURATION — paste your Apps Script URL below
+//  ▶  CONFIGURATION
 // ─────────────────────────────────────────────────────────────────
 const CONFIG = {
   scriptUrl: "https://script.google.com/macros/s/AKfycbxRB3UqSIUbLaWI9t5N9W1y6WkbTMSWhumm0g8zi4rVOAP7KfEktUK-GBD70D-Dxp6M/exec",
 };
-// ─────────────────────────────────────────────────────────────────
 
 // ── STATE ────────────────────────────────────────────
 let tools            = [];
@@ -387,13 +348,13 @@ let sites            = [];
 let selectedToolName = null;
 let selectedSiteVal  = null;
 let siteFilter       = '';
-let logFilter        = '';
+let currentTab       = 'tools';
 let lastSync         = null;
 let isSyncing        = false;
 
 const savedName = () => localStorage.getItem('tt_worker_name') || '';
 
-// ── API CALLS ────────────────────────────────────────
+// ── API ──────────────────────────────────────────────
 
 async function fetchData() {
   const res = await fetch(CONFIG.scriptUrl);
@@ -421,15 +382,13 @@ async function syncAll(quiet = false) {
   document.getElementById('syncBtn').classList.add('syncing');
   try {
     const data = await fetchData();
-    tools   = data.tools  || [];
-    moveLog = data.log    || [];
-    sites   = data.sites  || [];
+    tools   = data.tools || [];
+    moveLog = data.log   || [];
+    sites   = data.sites || [];
     lastSync = new Date();
     updateSyncTime();
-    applyFilters();
-    buildChips();
-    renderSites();
-    renderLog();
+    buildSiteSelect();
+    renderCurrentTab();
     renderManage();
     if (!quiet) showToast('✅ Synced — ' + tools.length + ' tools');
   } catch(e) {
@@ -447,7 +406,7 @@ function updateSyncTime() {
   document.getElementById('syncTime').innerHTML = `Synced<br>${h}:${m}`;
 }
 
-// ── RENDERING ────────────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────
 
 function locClass(loc) {
   if (!loc || loc === '?') return 'unknown';
@@ -467,17 +426,13 @@ function siteNames() {
   return [...new Set([...sheetNames, ...toolLocs])].sort();
 }
 
-function buildChips() {
-  const names = siteNames();
-  document.getElementById('chipsRow').innerHTML =
-    `<div class="chip ${!siteFilter?'active':''}" onclick="setSiteFilter('')">All</div>` +
-    names.map(s =>
-      `<div class="chip ${siteFilter===s?'active':''}" onclick="setSiteFilter('${s.replace(/'/g,"\\'")}')">📍 ${esc(s)}</div>`
-    ).join('');
-  buildMobileFilter();
+function searchQuery() {
+  return (document.getElementById('mainSearchInput').value || '').toLowerCase().trim();
 }
 
-function buildMobileFilter() {
+// ── SITE FILTER ──────────────────────────────────────
+
+function buildSiteSelect() {
   const select = document.getElementById('siteSelect');
   const names  = siteNames();
   select.innerHTML =
@@ -489,23 +444,31 @@ function buildMobileFilter() {
 
 function setSiteFilter(site) {
   siteFilter = site;
-  // Sync mobile UI
   document.getElementById('siteSelect').value = site;
-  document.getElementById('allChipMobile').classList.toggle('active', !site);
-  buildChips();
-  applyFilters();
+  document.getElementById('allBtn').classList.toggle('active', !site);
+  renderCurrentTab();
 }
 
 function setSiteFilterFromDropdown(select) {
   setSiteFilter(select.value);
 }
 
-function scrollChips(dir) {
-  document.getElementById('chipsRow').scrollBy({ left: dir * 200, behavior: 'smooth' });
+function onSearchInput() {
+  renderCurrentTab();
 }
 
-function applyFilters() {
-  const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+// ── TAB ROUTING ──────────────────────────────────────
+
+function renderCurrentTab() {
+  if (currentTab === 'tools')  renderTools();
+  if (currentTab === 'sites')  renderSites();
+  if (currentTab === 'log')    renderLog();
+}
+
+// ── RENDER: TOOLS ────────────────────────────────────
+
+function renderTools() {
+  const q = searchQuery();
   const filtered = tools.filter(t => {
     const matchQ = !q ||
       t.name.toLowerCase().includes(q) ||
@@ -516,40 +479,44 @@ function applyFilters() {
   });
 
   const el = document.getElementById('toolList');
-  if (!filtered.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No tools match your search</p></div>';
-  } else {
-    el.innerHTML = filtered.map(t => {
-      const cls = locClass(t.loc);
-      return `<div class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-status-bar ${cls}"></div>
-          <div class="tool-details">
-            <div class="tool-name">${esc(t.name)}</div>
-            ${t.notes ? `<div class="tool-sub">${esc(t.notes)}</div>` : ''}
-            <div class="tool-loc-row">
-              <div class="loc-badge ${cls}">📍 ${esc(t.loc||'Unknown')}</div>
+  el.innerHTML = filtered.length
+    ? filtered.map(t => {
+        const cls = locClass(t.loc);
+        return `<div class="tool-card">
+          <div class="tool-card-body">
+            <div class="tool-status-bar ${cls}"></div>
+            <div class="tool-details">
+              <div class="tool-name">${esc(t.name)}</div>
+              ${t.notes ? `<div class="tool-sub">${esc(t.notes)}</div>` : ''}
+              <div class="tool-loc-row">
+                <div class="loc-badge ${cls}">📍 ${esc(t.loc||'Unknown')}</div>
+              </div>
             </div>
+            <button class="move-btn" onclick="openSheet('${esc(t.name)}')">Move</button>
           </div>
-          <button class="move-btn" onclick="openSheet('${esc(t.name)}')">Move</button>
-        </div>
-      </div>`;
-    }).join('');
-  }
+        </div>`;
+      }).join('')
+    : '<div class="empty"><div class="empty-icon">🔍</div><p>No tools match your search</p></div>';
 
-  const info = document.getElementById('resultsInfo');
-  info.innerHTML = (q||siteFilter)
+  document.getElementById('resultsInfo').innerHTML = (q || siteFilter)
     ? `<strong>${filtered.length}</strong> of ${tools.length} tools`
     : `<strong>${tools.length}</strong> tools`;
 }
 
+// ── RENDER: SITES ────────────────────────────────────
+
 function renderSites() {
-  const el = document.getElementById('siteList');
+  const q     = searchQuery();
+  const el    = document.getElementById('siteList');
   const names = siteNames();
   let html = '';
+
   for (const site of names) {
+    if (siteFilter && site !== siteFilter) continue;
     const st = tools.filter(t => t.loc === site);
     if (!st.length) continue;
+    if (q && !site.toLowerCase().includes(q) && !st.some(t => t.name.toLowerCase().includes(q))) continue;
+
     const shown = st.slice(0,4);
     html += `<div class="site-card" onclick="jumpSite('${site.replace(/'/g,"\\'")}')">
       <div class="site-card-hdr">
@@ -562,27 +529,28 @@ function renderSites() {
       </div>
     </div>`;
   }
-  el.innerHTML = html || '<div class="empty"><div class="empty-icon">📍</div><p>No sites with tools</p></div>';
+
+  el.innerHTML = html || '<div class="empty"><div class="empty-icon">📍</div><p>No sites match your search</p></div>';
 }
 
-function applyLogFilter() {
-  logFilter = (document.getElementById('logSearchInput').value||'').toLowerCase().trim();
-  renderLog();
-}
+// ── RENDER: LOG ──────────────────────────────────────
 
 function renderLog() {
+  const q  = searchQuery();
   const el = document.getElementById('logList');
-  const filtered = logFilter
-    ? moveLog.filter(h =>
-        h.name.toLowerCase().includes(logFilter) ||
-        (h.from||'').toLowerCase().includes(logFilter) ||
-        (h.to||'').toLowerCase().includes(logFilter) ||
-        (h.by||'').toLowerCase().includes(logFilter)
-      )
-    : moveLog;
+
+  const filtered = moveLog.filter(h => {
+    const matchQ = !q ||
+      h.name.toLowerCase().includes(q) ||
+      (h.from||'').toLowerCase().includes(q) ||
+      (h.to||'').toLowerCase().includes(q) ||
+      (h.by||'').toLowerCase().includes(q);
+    const matchSite = !siteFilter || h.to === siteFilter || h.from === siteFilter;
+    return matchQ && matchSite;
+  });
 
   if (!filtered.length) {
-    el.innerHTML = logFilter
+    el.innerHTML = (q || siteFilter)
       ? '<div class="empty"><div class="empty-icon">🔍</div><p>No moves match your search</p></div>'
       : '<div class="empty"><div class="empty-icon">📋</div><p>No moves logged yet.<br>Move a tool to see history here.</p></div>';
     return;
@@ -601,13 +569,15 @@ function renderLog() {
   ).join('');
 }
 
+// ── RENDER: MANAGE ───────────────────────────────────
+
 function renderManage() {
   const addedByInput = document.getElementById('newSiteAddedBy');
   if (!addedByInput.value) addedByInput.value = savedName();
 
   const el = document.getElementById('manageSiteList');
   if (!sites.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📍</div><p>No sites yet.<br>Add one above.</p></div>';
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📍</div><p>No sites yet.<br>Use the form above to add one.</p></div>';
     return;
   }
 
@@ -629,21 +599,27 @@ function renderManage() {
 // ── TABS ─────────────────────────────────────────────
 
 function switchTab(tab, el) {
+  currentTab = tab;
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
+
   document.getElementById('tabTools').style.display  = tab==='tools'  ? 'block' : 'none';
   document.getElementById('tabSites').style.display  = tab==='sites'  ? 'block' : 'none';
   document.getElementById('tabLog').style.display    = tab==='log'    ? 'block' : 'none';
   document.getElementById('tabManage').style.display = tab==='manage' ? 'block' : 'none';
-  document.getElementById('toolsSearch').style.display = tab==='tools' ? 'block' : 'none';
-  document.getElementById('filterRow').style.display   = tab==='tools' ? ''      : 'none';
+
+  // Swap action bar content
+  const isManage = tab === 'manage';
+  document.getElementById('searchFilterBar').style.display = isManage ? 'none' : 'flex';
+  document.getElementById('addSiteBar').style.display      = isManage ? 'flex' : 'none';
+
   document.getElementById('scrollContent').scrollTo(0,0);
+  if (!isManage) renderCurrentTab();
 }
 
 function jumpSite(site) {
   switchTab('tools', document.querySelector('.nav-tab'));
   setSiteFilter(site);
-  document.getElementById('scrollContent').scrollTo(0,0);
 }
 
 // ── MOVE SHEET ───────────────────────────────────────
@@ -701,10 +677,8 @@ async function confirmMove() {
     moveLog.unshift({ name: t.name, from: oldLoc, to: newLoc, by: movedBy, time: 'just now' });
 
     closeSheet();
-    applyFilters();
-    buildChips();
-    renderSites();
-    renderLog();
+    buildSiteSelect();
+    renderCurrentTab();
 
     const short = t.name.length > 26 ? t.name.slice(0,26)+'…' : t.name;
     showToast(`✅ ${short} → ${newLoc}`);
@@ -725,7 +699,6 @@ async function addSite() {
 
   if (!siteName) { showToast('⚠️ Enter a site name', true); return; }
   if (!addedBy)  { showToast('⚠️ Enter your name', true); return; }
-
   if (sites.some(s => s.name.toLowerCase() === siteName.toLowerCase())) {
     showToast('⚠️ That site already exists', true); return;
   }
@@ -744,7 +717,7 @@ async function addSite() {
     sites.push({ name: siteName, addedBy, addedAt: timeStr });
 
     document.getElementById('newSiteName').value = '';
-    buildChips();
+    buildSiteSelect();
     renderManage();
     showToast(`✅ "${siteName}" added`);
   } catch(e) {
@@ -765,10 +738,9 @@ async function removeSite(siteName) {
 
   try {
     await post({ action: 'removeSite', siteName });
-
     sites = sites.filter(s => s.name !== siteName);
-    if (siteFilter === siteName) siteFilter = '';
-    buildChips();
+    if (siteFilter === siteName) setSiteFilter('');
+    buildSiteSelect();
     renderManage();
     showToast(`✅ "${siteName}" removed`);
   } catch(e) {
