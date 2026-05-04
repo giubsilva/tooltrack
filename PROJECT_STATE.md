@@ -6,13 +6,14 @@ A lightweight tool-location tracker for field crews at Fossil Landscape. Workers
 **Live app:** https://giubsilva.github.io/tooltrack/
 
 ## Current status
-- Fully deployed and working at the live URL above.
+- Fully deployed and working at the live URL above. **Admin layer shipped 2026-05-04.**
 - `doGet` returns tools, move log, and job sites (unauthenticated).
-- `doPost` handles `move`, `addSite`, and `removeSite` — all PIN-protected.
-- Frontend has four tabs: Tools, By Site, Move Log, Sites+.
-- XSS protection is in place: all user data rendered via `esc()`, event handlers use `data-*` attributes and event delegation.
-- Unit tests pass for all utility functions in `src/utils.js`.
-- Playwright E2E tests cover load, search/filter, move flow, sites tab, and PIN prompt behavior — no live Sheet required (API is mocked).
+- `doPost` handles crew action `move` (crew PIN) and admin actions `addTool`, `editTool`, `decommissionTool`, `deleteTool`, `bulkMove`, `addSite`, `removeSite` (admin PIN).
+- Frontend has four crew tabs: Tools, By Site, Move Log (Sites+ removed — admin only). Admin tab appears after admin PIN auth.
+- XSS protection in place: all user data rendered via `esc()`, event handlers use `data-*` attributes and event delegation.
+- Input validation on all text inputs: required fields, `maxlength` attrs, character allowlist, backend `sanitizeText()`.
+- 38 unit tests pass for all utility functions in `src/utils.js` (including `buildCsv`).
+- Playwright E2E tests cover load, search/filter, move flow, PIN prompt, and admin tab behavior — no live Sheet required (API is mocked).
 
 ## Stack
 - **Frontend**: Vanilla JS, single `index.html`, no build step, no frameworks
@@ -26,21 +27,24 @@ A lightweight tool-location tracker for field crews at Fossil Landscape. Workers
 ```
 Browser (index.html)
   │
-  ├── src/utils.js          Pure functions: esc, locClass, siteNames, filterTools, filterSites, filterLog
+  ├── src/utils.js          Pure functions: esc, locClass, siteNames, filterTools,
+  │                         filterSites, filterLog, buildCsv
   │                         (loaded by both index.html and the Jest test suite)
   │
   └── Google Apps Script    Web App URL in CONFIG.scriptUrl
         │  doGet  → returns { tools, log, sites } — no auth
-        │  doPost → requires PIN — actions: move | addSite | removeSite
+        │  doPost (crew PIN)  → move
+        │  doPost (admin PIN) → addTool | editTool | decommissionTool | deleteTool
+        │                       bulkMove | addSite | removeSite
         └── Google Sheet
               ├── ToolInventory   Name | Notes | Location
               ├── MoveLog         ToolName | FromLocation | ToLocation | MovedBy | MoveTime
               └── JobSites        SiteName | AddedBy | AddedAt
 ```
 
-**localStorage keys**: `tt_pin` (crew PIN), `tt_worker_name` (pre-fills move and add-site forms).
+**localStorage keys**: `tt_pin` (crew PIN), `tt_admin_pin` (admin PIN), `tt_worker_name` (pre-fills name fields).
 
-**Action bar** swaps content per tab: Tools/By Site/Move Log show the search+filter bar; Sites+ shows the add-site form.
+**Action bar** swaps content per tab: Tools/By Site/Move Log show the search+filter bar. Sites+ removed from crew nav — site management is admin-only.
 
 ## Decisions made
 - **No server, no database** — Google Sheets as the backend removes all hosting costs and maintenance. Acceptable for a small crew with low write volume.
@@ -103,7 +107,8 @@ These were audited on 2026-05-04.
 3. Deploy as new Web App version
 
 ## Next steps
-1. **SQL migration** — design schema, stand up FastAPI backend, swap out Apps Script URL in frontend. All current actions map 1:1 to SQL INSERT/UPDATE/DELETE.
-2. Update E2E tests to cover admin flows (add tool, edit tool, decommission, delete, bulk move, admin PIN prompt).
-3. Fix deferred items (setupPin/setupAdminPin guards, no-PIN UI) once auth is finalized post-migration.
-4. Add GitHub Actions CI to run `npm test` on push.
+1. **Delete `setupPin()` and `setupAdminPin()`** from the deployed Apps Script — both have been run; these functions are no longer needed and should be removed from the live script.
+2. **SQL migration** — design schema, stand up FastAPI backend, swap out Apps Script URL in frontend. All current actions (`addTool`, `editTool`, `decommissionTool`, `deleteTool`, `bulkMove`, `addSite`, `removeSite`, `move`) map 1:1 to SQL INSERT/UPDATE/DELETE.
+3. **Expand E2E tests** to cover full admin flows: add tool, edit tool, decommission, delete, bulk move, CSV download.
+4. **Fix deferred items** (no-PIN silent-allow guard) once auth is finalized post-migration.
+5. **Add GitHub Actions CI** to run `npm test` on push.
