@@ -106,9 +106,21 @@ These were audited on 2026-05-04.
 2. Run `setupAdminPin()` once → delete it
 3. Deploy as new Web App version
 
+## Pending features (approved 2026-05-04, not yet built)
+
+### In scope — build before SQL migration
+1. **Admin sub-tabs** — convert stacked admin sections into horizontal sub-tabs: Dashboard / Tools / Sites / Bulk / Export
+2. **Job code on sites** — add `jobCode` column to `JobSites`; display format `"26-0006 - 160 31st St"` everywhere a site name appears; admin sets it when adding/editing a site
+3. **Dark/Light mode** — CSS custom properties, `data-theme` toggle, sun/moon button in header, preference saved to `localStorage`
+
+### Deferred until after SQL migration
+- **Tool photos** — thumbnail beside tool name; clicking opens full photo (lightbox); admin can upload/remove, crew can only view. Plan: Google Drive URL stored in `ToolInventory` now → swap to S3/Cloudinary after migration. Do not build until SQL backend is in place.
+
 ## Next steps
-1. **Delete `setupPin()` and `setupAdminPin()`** from the deployed Apps Script — both have been run; these functions are no longer needed and should be removed from the live script.
-2. **SQL migration** — design schema, stand up FastAPI backend, swap out Apps Script URL in frontend. All current actions (`addTool`, `editTool`, `decommissionTool`, `deleteTool`, `bulkMove`, `addSite`, `removeSite`, `move`) map 1:1 to SQL INSERT/UPDATE/DELETE.
-3. **Expand E2E tests** to cover full admin flows: add tool, edit tool, decommission, delete, bulk move, CSV download.
-4. **Fix deferred items** (no-PIN silent-allow guard) once auth is finalized post-migration.
-5. **Add GitHub Actions CI** to run `npm test` on push.
+1. **Build pending features 1–3** above (admin sub-tabs, job codes, dark/light mode).
+2. **Delete `setupPin()` and `setupAdminPin()`** from the deployed Apps Script — both have been run; remove from live script.
+3. **SQL migration** — design schema, stand up FastAPI backend, swap CONFIG.scriptUrl. All current actions map 1:1 to SQL INSERT/UPDATE/DELETE.
+4. **Tool photos** — implement after SQL migration is stable.
+5. **Expand E2E tests** to cover full admin flows.
+6. **Fix deferred items** (no-PIN silent-allow guard) once auth is finalized post-migration.
+7. **Add GitHub Actions CI** to run `npm test` on push.
