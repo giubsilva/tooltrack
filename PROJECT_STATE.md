@@ -106,6 +106,13 @@ These were audited on 2026-05-04.
 2. Run `setupAdminPin()` once → delete it
 3. Deploy as new Web App version
 
+## Working with Claude on this project
+
+**Token efficiency priority (applies to all projects):** Work from these sources in order — cheapest first, escalate only when quality requires it:
+1. This file (PROJECT_STATE.md) + Claude memory files — read first, always cheapest
+2. MemPalace — big-picture context across sessions; Giuliano must run `mp-mine` to sync it
+3. Chat history — last resort only, when quality genuinely depends on a specific past exchange
+
 ## Pending features (approved 2026-05-04, not yet built)
 
 ### In scope — build before SQL migration
