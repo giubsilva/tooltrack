@@ -36,6 +36,9 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .sync-btn:active { background: var(--border); }
 .sync-icon { display: inline-block; font-size: 13px; }
 .sync-btn.syncing .sync-icon { animation: spin 1s linear infinite; }
+.admin-lock-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; color: var(--muted); font-size: 15px; font-family: inherit; cursor: pointer; transition: all 0.2s; line-height: 1; }
+.admin-lock-btn.unlocked { border-color: var(--accent); color: var(--accent); }
+.admin-lock-btn:active { background: var(--border); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .action-bar { padding: 10px 16px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -52,15 +55,12 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .site-select:focus { border-color: var(--accent); }
 .site-select option { background: #1a1e26; color: var(--text); }
 
-#addSiteBar { display: none; align-items: center; gap: 8px; width: 100%; }
-#addSiteBar .input-field { margin-bottom: 0; flex: 1; min-width: 0; padding: 10px 14px; }
-.btn-add-site { flex-shrink: 0; padding: 10px 18px; border-radius: 9px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; border: none; background: var(--accent); color: #000; white-space: nowrap; transition: opacity 0.15s; }
-.btn-add-site:active { opacity: 0.75; }
-.btn-add-site:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.nav-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 16px; }
-.nav-tab { flex: 1; padding: 10px 0; text-align: center; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 2.5px solid transparent; transition: all 0.15s; }
+.nav-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab { flex-shrink: 0; padding: 10px 12px; text-align: center; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 2.5px solid transparent; transition: all 0.15s; white-space: nowrap; }
 .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab.admin-tab { color: var(--blue); }
+.nav-tab.admin-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
 
 .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 10px 16px calc(16px + var(--safe-bottom)); }
 .results-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 8px; font-size: 11px; color: var(--muted); }
@@ -93,15 +93,6 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .site-preview-item { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .site-preview-more { font-size: 12px; color: var(--accent); margin-top: 2px; }
 
-.manage-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 600; margin: 4px 0 10px; }
-.manage-site-row { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-.manage-site-info { flex: 1; min-width: 0; }
-.manage-site-name { font-size: 14px; font-weight: 500; }
-.manage-site-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.manage-site-count { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); padding: 2px 8px; border-radius: 6px; flex-shrink: 0; }
-.btn-remove-site { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 7px 11px; color: var(--red); font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
-.btn-remove-site:active { background: rgba(245,101,101,0.12); border-color: var(--red); }
-
 .history-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
 .history-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 5px; flex-shrink: 0; }
 .history-body { flex: 1; min-width: 0; }
@@ -111,6 +102,61 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .history-who { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .history-time { font-size: 11px; color: var(--muted); flex-shrink: 0; text-align: right; }
 
+/* Admin tab styles */
+.admin-section { margin-bottom: 20px; }
+.admin-section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--blue); font-weight: 600; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+
+/* Dashboard stats */
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; }
+.stat-value { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--accent); line-height: 1; }
+.stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.site-stat-row { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+.site-stat-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.site-stat-bar { height: 100%; background: var(--accent); border-radius: 2px; }
+.site-stat-name { font-size: 12px; font-weight: 500; min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.site-stat-count { font-size: 12px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+
+/* Admin tool/site rows */
+.admin-tool-row { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; margin-bottom: 8px; }
+.admin-tool-top { display: flex; align-items: center; gap: 10px; }
+.admin-tool-info { flex: 1; min-width: 0; }
+.admin-tool-name { font-size: 14px; font-weight: 500; }
+.admin-tool-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.admin-btn-row { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-edit { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 7px 11px; color: var(--blue); font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+.btn-edit:active { background: rgba(96,165,250,0.12); border-color: var(--blue); }
+.btn-remove { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 7px 11px; color: var(--red); font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+.btn-remove:active { background: rgba(245,101,101,0.12); border-color: var(--red); }
+
+.admin-site-row { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.admin-site-info { flex: 1; min-width: 0; }
+.admin-site-name { font-size: 14px; font-weight: 500; }
+.admin-site-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.admin-site-count { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); padding: 2px 8px; border-radius: 6px; flex-shrink: 0; }
+
+/* Add tool / add site form */
+.admin-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 12px; }
+.admin-form-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+.form-row { display: flex; gap: 8px; }
+.form-row .input-field { flex: 1; margin-bottom: 0; }
+.btn-primary { background: var(--accent); color: #000; border: none; border-radius: 9px; padding: 10px 18px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+.btn-primary:active { opacity: 0.75; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); border-radius: 9px; padding: 10px 18px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+.btn-secondary:active { opacity: 0.75; }
+
+/* Bulk move */
+.bulk-arrow { text-align: center; color: var(--muted); font-size: 20px; margin: 8px 0; }
+.btn-danger { background: var(--red); color: #fff; border: none; border-radius: 9px; padding: 10px 18px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: opacity 0.15s; width: 100%; margin-top: 8px; }
+.btn-danger:active { opacity: 0.75; }
+.btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Export */
+.btn-export { background: var(--card); border: 1px solid var(--border); border-radius: 9px; padding: 10px 18px; font-size: 13px; font-weight: 600; font-family: inherit; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
+.btn-export:active { border-color: var(--accent); color: var(--accent); }
+
+/* Overlays and sheets */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: flex-end; justify-content: center; }
 .overlay.open { display: flex; }
 .sheet { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 92vh; display: flex; flex-direction: column; animation: slideUp 0.25s ease; padding-bottom: var(--safe-bottom); }
@@ -118,6 +164,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .sheet-handle { width: 38px; height: 4px; background: var(--border); border-radius: 4px; margin: 12px auto 6px; flex-shrink: 0; }
 .sheet-header { padding: 4px 20px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .sheet-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+.sheet-title.admin { color: var(--blue); }
 .sheet-subtitle { font-size: 13px; color: var(--text); margin-top: 2px; line-height: 1.4; }
 .sheet-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px 20px; }
 .sheet-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
@@ -129,16 +176,32 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 .site-opt.picked { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
 .input-field { width: 100%; background: var(--card2); border: 1.5px solid var(--border); border-radius: 9px; padding: 11px 14px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; margin-bottom: 12px; transition: border-color 0.2s; }
 .input-field:focus { border-color: var(--accent); }
+.input-field.invalid { border-color: var(--red); }
 .sheet-footer { padding: 10px 20px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; }
 .btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; border: none; transition: opacity 0.15s; }
 .btn:active { opacity: 0.8; }
 .btn-cancel { background: var(--card2); color: var(--muted); border: 1px solid var(--border); }
 .btn-confirm { background: var(--accent); color: #000; }
 .btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-confirm-admin { background: var(--blue); color: #000; }
+.btn-confirm-admin:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-confirm-danger { background: var(--red); color: #fff; }
+.btn-confirm-danger:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* PIN sheet */
-.pin-sheet { max-height: 320px; }
+/* Remove tool choice sheet */
+.remove-choice { background: var(--card2); border: 1.5px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; }
+.remove-choice.decom.selected { border-color: var(--accent); background: var(--accent-dim); }
+.remove-choice.del.selected { border-color: var(--red); background: rgba(245,101,101,0.1); }
+.remove-choice-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.remove-choice.decom .remove-choice-title { color: var(--accent); }
+.remove-choice.del .remove-choice-title { color: var(--red); }
+.remove-choice-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* PIN sheets */
+.pin-sheet { max-height: 340px; }
 .pin-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.field-error { font-size: 11px; color: var(--red); margin-top: -8px; margin-bottom: 8px; display: none; }
+.field-error.show { display: block; }
 
 .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
 .empty-icon { font-size: 36px; margin-bottom: 10px; }
@@ -163,6 +226,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   #toolList .tool-card { margin-bottom: 0; }
   #siteList { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   #siteList .site-card { margin-bottom: 0; }
+  .stat-grid { grid-template-columns: repeat(4, 1fr); }
 }
 </style>
 </head>
@@ -177,6 +241,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
 <div class="header">
   <div class="logo">🔧 Tool<span>Track</span></div>
   <div class="sync-time" id="syncTime"></div>
+  <button class="admin-lock-btn" id="adminLockBtn" title="Admin login">🔒</button>
   <button class="sync-btn" id="syncBtn" onclick="syncAll()">
     <span class="sync-icon">↻</span>
     <span>Sync</span>
@@ -194,18 +259,13 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
       <option value="">All Sites</option>
     </select>
   </div>
-  <div id="addSiteBar">
-    <input type="text" class="input-field" id="newSiteName" placeholder="New site name" autocomplete="off" autocorrect="off" spellcheck="false">
-    <input type="text" class="input-field" id="newSiteAddedBy" placeholder="Your name" autocomplete="name">
-    <button class="btn-add-site" id="addSiteBtn" onclick="addSite()">Add Site</button>
-  </div>
 </div>
 
-<div class="nav-tabs">
-  <div class="nav-tab active" onclick="switchTab('tools',this)">Tools</div>
-  <div class="nav-tab" onclick="switchTab('sites',this)">By Site</div>
-  <div class="nav-tab" onclick="switchTab('log',this)">Move Log</div>
-  <div class="nav-tab" onclick="switchTab('manage',this)">Sites +</div>
+<div class="nav-tabs" id="navTabs">
+  <div class="nav-tab active" data-tab="tools" onclick="switchTab('tools',this)">Tools</div>
+  <div class="nav-tab" data-tab="sites" onclick="switchTab('sites',this)">By Site</div>
+  <div class="nav-tab" data-tab="log" onclick="switchTab('log',this)">Move Log</div>
+  <div class="nav-tab admin-tab" data-tab="admin" id="adminTab" style="display:none" onclick="switchTab('admin',this)">Admin</div>
 </div>
 
 <div class="scroll-content" id="scrollContent">
@@ -215,9 +275,62 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   </div>
   <div id="tabSites"  style="display:none"><div id="siteList"></div></div>
   <div id="tabLog"    style="display:none"><div id="logList"></div></div>
-  <div id="tabManage" style="display:none">
-    <div class="manage-section-label">Current Sites</div>
-    <div id="manageSiteList"></div>
+  <div id="tabAdmin"  style="display:none">
+
+    <div class="admin-section">
+      <div class="admin-section-title">Dashboard</div>
+      <div class="stat-grid" id="statGrid"></div>
+      <div id="siteStatList"></div>
+    </div>
+
+    <div class="admin-section">
+      <div class="admin-section-title">Tool Inventory</div>
+      <div class="admin-form">
+        <div class="admin-form-title">Add New Tool</div>
+        <input type="text" class="input-field" id="newToolName" placeholder="Tool name *" maxlength="200" autocomplete="off" autocorrect="off" spellcheck="false">
+        <input type="text" class="input-field" id="newToolNotes" placeholder="Notes (optional)" maxlength="500" autocomplete="off" autocorrect="off" spellcheck="false">
+        <select class="input-field" id="newToolLoc" style="margin-bottom:12px"></select>
+        <input type="text" class="input-field" id="newToolAddedBy" placeholder="Your name *" maxlength="100" autocomplete="name">
+        <button class="btn-primary" id="addToolBtn" onclick="addTool()">Add Tool</button>
+      </div>
+      <div id="adminToolList"></div>
+    </div>
+
+    <div class="admin-section">
+      <div class="admin-section-title">Site Management</div>
+      <div class="admin-form">
+        <div class="admin-form-title">Add New Site</div>
+        <div class="form-row">
+          <input type="text" class="input-field" id="adminNewSiteName" placeholder="Site name *" maxlength="200" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input type="text" class="input-field" id="adminNewSiteAddedBy" placeholder="Your name *" maxlength="100" autocomplete="name">
+        </div>
+        <button class="btn-primary" id="adminAddSiteBtn" onclick="adminAddSite()">Add Site</button>
+      </div>
+      <div id="adminSiteList"></div>
+    </div>
+
+    <div class="admin-section">
+      <div class="admin-section-title">Bulk Reassign Tools</div>
+      <div class="admin-form">
+        <div class="sheet-label">From site</div>
+        <select class="input-field" id="bulkFromSite" style="margin-bottom:12px"></select>
+        <div class="bulk-arrow">↓</div>
+        <div class="sheet-label">To site</div>
+        <select class="input-field" id="bulkToSite" style="margin-bottom:12px"></select>
+        <input type="text" class="input-field" id="bulkMovedBy" placeholder="Your name *" maxlength="100" autocomplete="name">
+        <button class="btn-danger" id="bulkMoveBtn" onclick="bulkMove()">Move All Tools →</button>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <div class="admin-section-title">Export</div>
+      <button class="btn-export" onclick="exportCsv()">⬇ Download Move Log (CSV)</button>
+    </div>
+
+    <div class="admin-section">
+      <button class="btn-secondary" style="width:100%" onclick="adminLogout()">🔒 Log out of Admin</button>
+    </div>
+
   </div>
 </div>
 
@@ -235,8 +348,9 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
       <div class="arrow-row">↓ Move to</div>
       <div class="sheet-label">Select New Location</div>
       <div class="sites-grid" id="sitesGrid"></div>
-      <div class="sheet-label">Your name (for the log)</div>
-      <input type="text" class="input-field" id="movedByInput" placeholder="John Doe" autocomplete="name">
+      <div class="sheet-label">Your name <span style="color:var(--red)">*</span></div>
+      <input type="text" class="input-field" id="movedByInput" placeholder="Required" maxlength="100" autocomplete="name">
+      <div class="field-error" id="movedByError">Name is required</div>
     </div>
     <div class="sheet-footer">
       <button class="btn btn-cancel" id="cancelMoveBtn">Cancel</button>
@@ -245,7 +359,58 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   </div>
 </div>
 
-<!-- PIN SHEET -->
+<!-- EDIT TOOL SHEET -->
+<div class="overlay" id="editToolOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title admin">Edit Tool</div>
+      <div class="sheet-subtitle" id="editToolOriginalName"></div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-label">Tool Name <span style="color:var(--red)">*</span></div>
+      <input type="text" class="input-field" id="editToolName" maxlength="200" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="sheet-label">Notes</div>
+      <input type="text" class="input-field" id="editToolNotes" maxlength="500" placeholder="Optional" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="sheet-label">Your name <span style="color:var(--red)">*</span></div>
+      <input type="text" class="input-field" id="editToolEditedBy" placeholder="Required" maxlength="100" autocomplete="name">
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-cancel" id="cancelEditToolBtn">Cancel</button>
+      <button class="btn btn-confirm-admin" id="confirmEditToolBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMOVE TOOL SHEET -->
+<div class="overlay" id="removeToolOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" style="color:var(--red)">Remove Tool</div>
+      <div class="sheet-subtitle" id="removeToolName"></div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-label">Choose what to do</div>
+      <div class="remove-choice decom" id="choiceDecom" data-choice="decom">
+        <div class="remove-choice-title">Decommission</div>
+        <div class="remove-choice-desc">Tool stays in the system, marked as Decommissioned. Move history is preserved. Can be reversed by editing the location.</div>
+      </div>
+      <div class="remove-choice del" id="choiceDel" data-choice="delete">
+        <div class="remove-choice-title">Delete Permanently</div>
+        <div class="remove-choice-desc">Removes the tool from inventory entirely. Use this only if the tool should not be tracked in this system at all. This cannot be undone.</div>
+      </div>
+      <div class="sheet-label" style="margin-top:12px">Your name <span style="color:var(--red)">*</span></div>
+      <input type="text" class="input-field" id="removeToolBy" placeholder="Required" maxlength="100" autocomplete="name">
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-cancel" id="cancelRemoveToolBtn">Cancel</button>
+      <button class="btn btn-confirm-danger" id="confirmRemoveToolBtn" disabled>Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREW PIN SHEET -->
 <div class="overlay" id="pinOverlay">
   <div class="sheet pin-sheet">
     <div class="sheet-handle"></div>
@@ -264,9 +429,28 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
   </div>
 </div>
 
+<!-- ADMIN PIN SHEET -->
+<div class="overlay" id="adminPinOverlay">
+  <div class="sheet pin-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title admin">Admin Access</div>
+      <div class="sheet-subtitle">Enter the admin PIN to unlock management features</div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-label">Admin PIN</div>
+      <input type="password" class="input-field" id="adminPinInput" placeholder="Enter admin PIN" inputmode="numeric" autocomplete="off">
+      <p class="pin-hint">Admin mode is stored on this device until you log out.</p>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-cancel" id="cancelAdminPinBtn">Cancel</button>
+      <button class="btn btn-confirm-admin" id="saveAdminPinBtn">Unlock Admin</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
-<!-- Pure utility functions (also used by tests) -->
 <script src="src/utils.js"></script>
 
 <script>
@@ -275,7 +459,32 @@ const CONFIG = {
   scriptUrl: "https://script.google.com/macros/s/AKfycbxRB3UqSIUbLaWI9t5N9W1y6WkbTMSWhumm0g8zi4rVOAP7KfEktUK-GBD70D-Dxp6M/exec",
 };
 
-// ── STATE ────────────────────────────────────────────
+// ── VALIDATION HELPERS ───────────────────────────────────────────
+const NAME_RE = /^[A-Za-z0-9 \-'.,#&/()]+$/;
+
+function validateName(value) {
+  const v = value.trim();
+  if (!v) return 'This field is required';
+  if (!NAME_RE.test(v)) return "Only letters, numbers, spaces, and - ' . , # & / ( ) are allowed";
+  return null;
+}
+
+function markInvalid(input, msg) {
+  input.classList.add('invalid');
+  const err = input.nextElementSibling;
+  if (err && err.classList.contains('field-error')) {
+    err.textContent = msg;
+    err.classList.add('show');
+  }
+}
+
+function markValid(input) {
+  input.classList.remove('invalid');
+  const err = input.nextElementSibling;
+  if (err && err.classList.contains('field-error')) err.classList.remove('show');
+}
+
+// ── STATE ────────────────────────────────────────────────────────
 let tools            = [];
 let moveLog          = [];
 let sites            = [];
@@ -285,12 +494,18 @@ let siteFilter       = '';
 let currentTab       = 'tools';
 let lastSync         = null;
 let isSyncing        = false;
+let isAdmin          = false;
+let removeToolTarget = null;
+let removeToolChoice = null;
+let editToolOriginal = null;
 
-const savedName   = () => localStorage.getItem('tt_worker_name') || '';
-const getPin      = () => localStorage.getItem('tt_pin') || '';
-const clearPin    = () => localStorage.removeItem('tt_pin');
+const savedName     = () => localStorage.getItem('tt_worker_name') || '';
+const getPin        = () => localStorage.getItem('tt_pin') || '';
+const clearPin      = () => localStorage.removeItem('tt_pin');
+const getAdminPin   = () => localStorage.getItem('tt_admin_pin') || '';
+const clearAdminPin = () => { localStorage.removeItem('tt_admin_pin'); isAdmin = false; };
 
-// ── API ──────────────────────────────────────────────
+// ── API ──────────────────────────────────────────────────────────
 
 async function fetchData() {
   const res = await fetch(CONFIG.scriptUrl);
@@ -302,20 +517,26 @@ async function post(body) {
   const res = await fetch(CONFIG.scriptUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ ...body, pin: getPin() }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   if (data.error === 'unauthorized') {
-    clearPin();
-    openPinSheet();
+    if (body.adminPin !== undefined) {
+      clearAdminPin();
+      updateAdminUI();
+      openAdminPinSheet();
+    } else {
+      clearPin();
+      openPinSheet();
+    }
     throw new Error('unauthorized');
   }
   if (data.error) throw new Error(data.error);
   return data;
 }
 
-// ── SYNC ─────────────────────────────────────────────
+// ── SYNC ─────────────────────────────────────────────────────────
 
 async function syncAll(quiet = false) {
   if (isSyncing) return;
@@ -329,8 +550,9 @@ async function syncAll(quiet = false) {
     lastSync = new Date();
     updateSyncTime();
     buildSiteSelect();
+    buildAdminSiteSelects();
     renderCurrentTab();
-    renderManage();
+    if (isAdmin) renderAdminTab();
     if (!quiet) showToast('✅ Synced — ' + tools.length + ' tools');
   } catch(e) {
     console.error(e);
@@ -347,7 +569,7 @@ function updateSyncTime() {
   document.getElementById('syncTime').innerHTML = `Synced<br>${h}:${m}`;
 }
 
-// ── SITE FILTER ──────────────────────────────────────
+// ── SITE FILTER ──────────────────────────────────────────────────
 
 function buildSiteSelect() {
   const select = document.getElementById('siteSelect');
@@ -357,6 +579,17 @@ function buildSiteSelect() {
     names.map(s => `<option value="${esc(s)}" ${siteFilter===s?'selected':''}>${esc(s)}</option>`).join('');
 }
 
+function buildAdminSiteSelects() {
+  const names = siteNames(sites, tools);
+  const opts = names.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  const newToolLoc = document.getElementById('newToolLoc');
+  if (newToolLoc) newToolLoc.innerHTML = '<option value="">-- Select starting location --</option>' + opts;
+  const bulkFrom = document.getElementById('bulkFromSite');
+  if (bulkFrom) bulkFrom.innerHTML = '<option value="">-- Select source site --</option>' + opts;
+  const bulkTo = document.getElementById('bulkToSite');
+  if (bulkTo) bulkTo.innerHTML = '<option value="">-- Select destination --</option>' + opts;
+}
+
 function setSiteFilter(site) {
   siteFilter = site;
   document.getElementById('siteSelect').value = site;
@@ -364,27 +597,20 @@ function setSiteFilter(site) {
   renderCurrentTab();
 }
 
-function setSiteFilterFromDropdown(select) {
-  setSiteFilter(select.value);
-}
+function setSiteFilterFromDropdown(select) { setSiteFilter(select.value); }
+function onSearchInput() { renderCurrentTab(); }
+function searchQuery() { return (document.getElementById('mainSearchInput').value || '').toLowerCase().trim(); }
 
-function onSearchInput() {
-  renderCurrentTab();
-}
-
-function searchQuery() {
-  return (document.getElementById('mainSearchInput').value || '').toLowerCase().trim();
-}
-
-// ── TAB ROUTING ──────────────────────────────────────
+// ── TAB ROUTING ──────────────────────────────────────────────────
 
 function renderCurrentTab() {
   if (currentTab === 'tools')  renderTools();
   if (currentTab === 'sites')  renderSites();
   if (currentTab === 'log')    renderLog();
+  if (currentTab === 'admin')  renderAdminTab();
 }
 
-// ── RENDER: TOOLS ────────────────────────────────────
+// ── RENDER: TOOLS ────────────────────────────────────────────────
 
 function renderTools() {
   const filtered = filterTools(tools, searchQuery(), siteFilter);
@@ -413,13 +639,12 @@ function renderTools() {
     : `<strong>${tools.length}</strong> tools`;
 }
 
-// ── RENDER: SITES ────────────────────────────────────
+// ── RENDER: SITES ────────────────────────────────────────────────
 
 function renderSites() {
   const el      = document.getElementById('siteList');
   const visible = filterSites(sites, tools, searchQuery(), siteFilter);
   let html = '';
-
   for (const site of visible) {
     const st    = tools.filter(t => t.loc === site);
     const shown = st.slice(0,4);
@@ -434,23 +659,20 @@ function renderSites() {
       </div>
     </div>`;
   }
-
   el.innerHTML = html || '<div class="empty"><div class="empty-icon">📍</div><p>No sites match your search</p></div>';
 }
 
-// ── RENDER: LOG ──────────────────────────────────────
+// ── RENDER: LOG ──────────────────────────────────────────────────
 
 function renderLog() {
   const el       = document.getElementById('logList');
   const filtered = filterLog(moveLog, searchQuery(), siteFilter);
-
   if (!filtered.length) {
     el.innerHTML = (searchQuery() || siteFilter)
       ? '<div class="empty"><div class="empty-icon">🔍</div><p>No moves match your search</p></div>'
       : '<div class="empty"><div class="empty-icon">📋</div><p>No moves logged yet.<br>Move a tool to see history here.</p></div>';
     return;
   }
-
   el.innerHTML = filtered.slice(0,100).map(h =>
     `<div class="history-card">
       <div class="history-dot"></div>
@@ -464,34 +686,85 @@ function renderLog() {
   ).join('');
 }
 
-// ── RENDER: MANAGE ───────────────────────────────────
+// ── RENDER: ADMIN ────────────────────────────────────────────────
 
-function renderManage() {
-  const addedByInput = document.getElementById('newSiteAddedBy');
-  if (!addedByInput.value) addedByInput.value = savedName();
+function renderAdminTab() {
+  renderAdminDashboard();
+  renderAdminToolList();
+  renderAdminSiteList();
+  const name = savedName();
+  ['newToolAddedBy','adminNewSiteAddedBy','bulkMovedBy'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = name;
+  });
+}
 
-  const el = document.getElementById('manageSiteList');
-  if (!sites.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📍</div><p>No sites yet.<br>Use the form above to add one.</p></div>';
-    return;
-  }
+function renderAdminDashboard() {
+  const total   = tools.length;
+  const decom   = tools.filter(t => locClass(t.loc) === 'decom').length;
+  const repair  = tools.filter(t => locClass(t.loc) === 'repair').length;
+  const unknown = tools.filter(t => locClass(t.loc) === 'unknown').length;
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">Total Tools</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--green)">${total-decom-repair-unknown}</div><div class="stat-label">Active</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--red)">${decom}</div><div class="stat-label">Decommissioned</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--blue)">${repair}</div><div class="stat-label">In Repair</div></div>
+  `;
+  const siteToolCounts = {};
+  tools.forEach(t => {
+    if (t.loc && t.loc !== '?' && locClass(t.loc) === '')
+      siteToolCounts[t.loc] = (siteToolCounts[t.loc] || 0) + 1;
+  });
+  const maxCount   = Math.max(...Object.values(siteToolCounts), 1);
+  const siteEntries = Object.entries(siteToolCounts).sort((a,b) => b[1]-a[1]);
+  document.getElementById('siteStatList').innerHTML = siteEntries.map(([site, count]) =>
+    `<div class="site-stat-row">
+      <div class="site-stat-name">📍 ${esc(site)}</div>
+      <div class="site-stat-bar-wrap"><div class="site-stat-bar" style="width:${Math.round(count/maxCount*100)}%"></div></div>
+      <div class="site-stat-count">${count}</div>
+    </div>`).join('');
+}
 
+function renderAdminToolList() {
+  const el = document.getElementById('adminToolList');
+  if (!tools.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔧</div><p>No tools in inventory.</p></div>'; return; }
+  el.innerHTML = tools.map(t => {
+    const cls = locClass(t.loc);
+    return `<div class="admin-tool-row">
+      <div class="admin-tool-top">
+        <div class="tool-status-bar ${cls}" style="height:40px;align-self:stretch"></div>
+        <div class="admin-tool-info">
+          <div class="admin-tool-name">${esc(t.name)}</div>
+          <div class="admin-tool-sub">${t.notes ? esc(t.notes)+' · ' : ''}📍 ${esc(t.loc||'Unknown')}</div>
+        </div>
+        <div class="admin-btn-row">
+          <button class="btn-edit" data-tool="${esc(t.name)}">Edit</button>
+          <button class="btn-remove" data-tool="${esc(t.name)}">Remove</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAdminSiteList() {
+  const el = document.getElementById('adminSiteList');
+  if (!sites.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📍</div><p>No sites yet.</p></div>'; return; }
   el.innerHTML = sites.map(s => {
     const toolCount = tools.filter(t => t.loc === s.name).length;
-    return `<div class="manage-site-row">
-      <div class="manage-site-info">
-        <div class="manage-site-name">📍 ${esc(s.name)}</div>
-        <div class="manage-site-meta">Added by ${esc(s.addedBy||'—')} · ${esc(s.addedAt||'')}</div>
+    return `<div class="admin-site-row">
+      <div class="admin-site-info">
+        <div class="admin-site-name">📍 ${esc(s.name)}</div>
+        <div class="admin-site-meta">Added by ${esc(s.addedBy||'—')} · ${esc(s.addedAt||'')}</div>
       </div>
       ${toolCount > 0
-        ? `<div class="manage-site-count">${toolCount} tool${toolCount>1?'s':''}</div>`
-        : `<button class="btn-remove-site" data-site="${esc(s.name)}">Remove</button>`
+        ? `<div class="admin-site-count">${toolCount} tool${toolCount>1?'s':''}</div>`
+        : `<button class="btn-remove" data-site="${esc(s.name)}">Remove</button>`
       }
     </div>`;
   }).join('');
 }
 
-// ── TABS ─────────────────────────────────────────────
+// ── TABS ─────────────────────────────────────────────────────────
 
 function switchTab(tab, el) {
   currentTab = tab;
@@ -500,37 +773,34 @@ function switchTab(tab, el) {
   document.getElementById('tabTools').style.display  = tab==='tools'  ? 'block' : 'none';
   document.getElementById('tabSites').style.display  = tab==='sites'  ? 'block' : 'none';
   document.getElementById('tabLog').style.display    = tab==='log'    ? 'block' : 'none';
-  document.getElementById('tabManage').style.display = tab==='manage' ? 'block' : 'none';
-  const isManage = tab === 'manage';
-  document.getElementById('searchFilterBar').style.display = isManage ? 'none' : 'flex';
-  document.getElementById('addSiteBar').style.display      = isManage ? 'flex' : 'none';
+  document.getElementById('tabAdmin').style.display  = tab==='admin'  ? 'block' : 'none';
+  document.getElementById('searchFilterBar').style.display = tab==='admin' ? 'none' : 'flex';
   document.getElementById('scrollContent').scrollTo(0,0);
-  if (!isManage) renderCurrentTab();
+  if (tab !== 'admin') renderCurrentTab(); else renderAdminTab();
 }
 
 function jumpSite(site) {
-  switchTab('tools', document.querySelector('.nav-tab'));
+  switchTab('tools', document.querySelector('.nav-tab[data-tab="tools"]'));
   setSiteFilter(site);
 }
 
-// ── MOVE SHEET ───────────────────────────────────────
+// ── MOVE SHEET ───────────────────────────────────────────────────
 
 function openSheet(toolName) {
   selectedToolName = toolName;
   selectedSiteVal  = null;
   const t = tools.find(x => x.name === toolName);
   if (!t) return;
-
   document.getElementById('sheetToolName').textContent = t.name;
   document.getElementById('sheetLocText').textContent  = t.loc || 'Unknown';
-  document.getElementById('movedByInput').value = savedName();
-
+  const movedByInput = document.getElementById('movedByInput');
+  movedByInput.value = savedName();
+  markValid(movedByInput);
   document.getElementById('sitesGrid').innerHTML = siteNames(sites, tools).map(s =>
     `<button class="site-opt${s===t.loc?' picked':''}" data-site="${esc(s)}">${esc(s)}</button>`
   ).join('');
-
   document.getElementById('moveOverlay').classList.add('open');
-  document.querySelector('.sheet-body').scrollTo(0,0);
+  document.querySelector('#moveOverlay .sheet-body').scrollTo(0,0);
 }
 
 function pickSite(site, el) {
@@ -546,23 +816,21 @@ function closeSheet() {
 }
 
 async function confirmMove() {
-  const newLoc  = selectedSiteVal;
-  const movedBy = document.getElementById('movedByInput').value.trim();
-
+  const newLoc       = selectedSiteVal;
+  const movedByInput = document.getElementById('movedByInput');
+  const movedBy      = movedByInput.value.trim();
   if (!newLoc) { showToast('⚠️ Select a location from the list', true); return; }
-
+  const nameErr = validateName(movedBy);
+  if (nameErr) { markInvalid(movedByInput, nameErr); return; }
+  markValid(movedByInput);
   const t = tools.find(x => x.name === selectedToolName);
   if (!t) return;
-
-  if (movedBy) localStorage.setItem('tt_worker_name', movedBy);
-
+  localStorage.setItem('tt_worker_name', movedBy);
   const confirmBtn = document.getElementById('confirmBtn');
-  confirmBtn.disabled = true;
-  confirmBtn.textContent = 'Saving...';
-
+  confirmBtn.disabled = true; confirmBtn.textContent = 'Saving...';
   const oldLoc = t.loc;
   try {
-    await post({ action: 'move', toolName: t.name, fromLoc: oldLoc, newLoc, movedBy });
+    await post({ action: 'move', toolName: t.name, fromLoc: oldLoc, newLoc, movedBy, pin: getPin() });
     t.loc = newLoc;
     moveLog.unshift({ name: t.name, from: oldLoc, to: newLoc, by: movedBy, time: 'just now' });
     closeSheet();
@@ -573,65 +841,286 @@ async function confirmMove() {
   } catch(e) {
     if (e.message !== 'unauthorized') showToast('⚠️ Save failed — check connection', true);
   }
-
-  confirmBtn.disabled = false;
-  confirmBtn.textContent = 'Move It →';
+  confirmBtn.disabled = false; confirmBtn.textContent = 'Move It →';
 }
 
-// ── MANAGE SITES ─────────────────────────────────────
+// ── ADMIN: ADD TOOL ──────────────────────────────────────────────
 
-async function addSite() {
-  const siteName = document.getElementById('newSiteName').value.trim();
-  const addedBy  = document.getElementById('newSiteAddedBy').value.trim();
+async function addTool() {
+  const nameInput    = document.getElementById('newToolName');
+  const locSelect    = document.getElementById('newToolLoc');
+  const addedByInput = document.getElementById('newToolAddedBy');
+  const name    = nameInput.value.trim();
+  const notes   = document.getElementById('newToolNotes').value.trim();
+  const loc     = locSelect.value;
+  const addedBy = addedByInput.value.trim();
+  let valid = true;
+  const nameErr = validateName(name);
+  if (nameErr) { markInvalid(nameInput, nameErr); valid = false; } else markValid(nameInput);
+  if (!loc) { showToast('⚠️ Select a starting location', true); valid = false; }
+  const byErr = validateName(addedBy);
+  if (byErr) { markInvalid(addedByInput, byErr); valid = false; } else markValid(addedByInput);
+  if (!valid) return;
+  localStorage.setItem('tt_worker_name', addedBy);
+  const btn = document.getElementById('addToolBtn');
+  btn.disabled = true; btn.textContent = 'Adding...';
+  try {
+    await post({ action: 'addTool', name, notes, loc, addedBy, adminPin: getAdminPin() });
+    tools.push({ name, notes, loc });
+    nameInput.value = ''; document.getElementById('newToolNotes').value = '';
+    buildSiteSelect(); buildAdminSiteSelects(); renderAdminTab();
+    showToast(`✅ "${name}" added to inventory`);
+  } catch(e) {
+    if (e.message !== 'unauthorized') showToast('⚠️ Failed to add tool: ' + e.message, true);
+  }
+  btn.disabled = false; btn.textContent = 'Add Tool';
+}
 
-  if (!siteName) { showToast('⚠️ Enter a site name', true); return; }
-  if (!addedBy)  { showToast('⚠️ Enter your name', true); return; }
+// ── ADMIN: EDIT TOOL ─────────────────────────────────────────────
+
+function openEditToolSheet(toolName) {
+  const t = tools.find(x => x.name === toolName);
+  if (!t) return;
+  editToolOriginal = toolName;
+  document.getElementById('editToolOriginalName').textContent = t.name;
+  document.getElementById('editToolName').value  = t.name;
+  document.getElementById('editToolNotes').value = t.notes || '';
+  const editedByInput = document.getElementById('editToolEditedBy');
+  editedByInput.value = savedName();
+  markValid(document.getElementById('editToolName'));
+  markValid(editedByInput);
+  document.getElementById('editToolOverlay').classList.add('open');
+}
+
+function closeEditToolSheet() {
+  document.getElementById('editToolOverlay').classList.remove('open');
+  editToolOriginal = null;
+}
+
+async function confirmEditTool() {
+  const nameInput     = document.getElementById('editToolName');
+  const editedByInput = document.getElementById('editToolEditedBy');
+  const name    = nameInput.value.trim();
+  const notes   = document.getElementById('editToolNotes').value.trim();
+  const editedBy = editedByInput.value.trim();
+  let valid = true;
+  const nameErr = validateName(name);
+  if (nameErr) { markInvalid(nameInput, nameErr); valid = false; } else markValid(nameInput);
+  const byErr = validateName(editedBy);
+  if (byErr) { markInvalid(editedByInput, byErr); valid = false; } else markValid(editedByInput);
+  if (!valid) return;
+  localStorage.setItem('tt_worker_name', editedBy);
+  const btn = document.getElementById('confirmEditToolBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    await post({ action: 'editTool', originalName: editToolOriginal, name, notes, editedBy, adminPin: getAdminPin() });
+    const t = tools.find(x => x.name === editToolOriginal);
+    if (t) { t.name = name; t.notes = notes; }
+    closeEditToolSheet(); renderAdminTab();
+    showToast(`✅ "${name}" updated`);
+  } catch(e) {
+    if (e.message !== 'unauthorized') showToast('⚠️ Failed to edit tool: ' + e.message, true);
+  }
+  btn.disabled = false; btn.textContent = 'Save Changes';
+}
+
+// ── ADMIN: REMOVE TOOL ───────────────────────────────────────────
+
+function openRemoveToolSheet(toolName) {
+  removeToolTarget = toolName;
+  removeToolChoice = null;
+  document.getElementById('removeToolName').textContent = toolName;
+  document.getElementById('removeToolBy').value = savedName();
+  document.getElementById('confirmRemoveToolBtn').disabled = true;
+  document.getElementById('choiceDecom').classList.remove('selected');
+  document.getElementById('choiceDel').classList.remove('selected');
+  markValid(document.getElementById('removeToolBy'));
+  document.getElementById('removeToolOverlay').classList.add('open');
+}
+
+function closeRemoveToolSheet() {
+  document.getElementById('removeToolOverlay').classList.remove('open');
+  removeToolTarget = null; removeToolChoice = null;
+}
+
+function selectRemoveChoice(choice, el) {
+  removeToolChoice = choice;
+  document.querySelectorAll('.remove-choice').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('confirmRemoveToolBtn').disabled = false;
+}
+
+async function confirmRemoveTool() {
+  const byInput = document.getElementById('removeToolBy');
+  const by = byInput.value.trim();
+  const byErr = validateName(by);
+  if (byErr) { markInvalid(byInput, byErr); return; }
+  markValid(byInput);
+  if (!removeToolChoice) { showToast('⚠️ Choose Decommission or Delete', true); return; }
+  localStorage.setItem('tt_worker_name', by);
+  const btn = document.getElementById('confirmRemoveToolBtn');
+  btn.disabled = true; btn.textContent = 'Confirming...';
+  try {
+    const action  = removeToolChoice === 'decom' ? 'decommissionTool' : 'deleteTool';
+    const bodyKey = removeToolChoice === 'decom' ? 'movedBy' : 'deletedBy';
+    await post({ action, toolName: removeToolTarget, [bodyKey]: by, adminPin: getAdminPin() });
+    if (removeToolChoice === 'decom') {
+      const t = tools.find(x => x.name === removeToolTarget);
+      if (t) t.loc = 'Decommissioned';
+      showToast(`✅ "${removeToolTarget}" decommissioned`);
+    } else {
+      tools = tools.filter(x => x.name !== removeToolTarget);
+      showToast(`✅ "${removeToolTarget}" deleted`);
+    }
+    closeRemoveToolSheet();
+    buildSiteSelect(); buildAdminSiteSelects(); renderAdminTab();
+  } catch(e) {
+    if (e.message !== 'unauthorized') showToast('⚠️ Failed: ' + e.message, true);
+  }
+  btn.disabled = false; btn.textContent = 'Confirm';
+}
+
+// ── ADMIN: SITES ─────────────────────────────────────────────────
+
+async function adminAddSite() {
+  const nameInput = document.getElementById('adminNewSiteName');
+  const byInput   = document.getElementById('adminNewSiteAddedBy');
+  const siteName  = nameInput.value.trim();
+  const addedBy   = byInput.value.trim();
+  let valid = true;
+  const nameErr = validateName(siteName);
+  if (nameErr) { markInvalid(nameInput, nameErr); valid = false; } else markValid(nameInput);
+  const byErr = validateName(addedBy);
+  if (byErr) { markInvalid(byInput, byErr); valid = false; } else markValid(byInput);
+  if (!valid) return;
   if (sites.some(s => s.name.toLowerCase() === siteName.toLowerCase())) {
     showToast('⚠️ That site already exists', true); return;
   }
-
-  if (addedBy) localStorage.setItem('tt_worker_name', addedBy);
-
-  const btn = document.getElementById('addSiteBtn');
-  btn.disabled = true;
-  btn.textContent = 'Adding...';
-
+  localStorage.setItem('tt_worker_name', addedBy);
+  const btn = document.getElementById('adminAddSiteBtn');
+  btn.disabled = true; btn.textContent = 'Adding...';
   try {
-    await post({ action: 'addSite', siteName, addedBy });
-    const now     = new Date();
+    await post({ action: 'addSite', siteName, addedBy, adminPin: getAdminPin() });
+    const now = new Date();
     const timeStr = now.toLocaleString('en-CA', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
     sites.push({ name: siteName, addedBy, addedAt: timeStr });
-    document.getElementById('newSiteName').value = '';
-    buildSiteSelect();
-    renderManage();
+    nameInput.value = '';
+    buildSiteSelect(); buildAdminSiteSelects(); renderAdminTab();
     showToast(`✅ "${siteName}" added`);
   } catch(e) {
     if (e.message !== 'unauthorized') showToast('⚠️ Failed to add site', true);
   }
-
-  btn.disabled = false;
-  btn.textContent = 'Add Site';
+  btn.disabled = false; btn.textContent = 'Add Site';
 }
 
-async function removeSite(siteName) {
+async function adminRemoveSite(siteName) {
   const toolCount = tools.filter(t => t.loc === siteName).length;
-  if (toolCount > 0) {
-    showToast(`⚠️ Move the ${toolCount} tool${toolCount>1?'s':''} off this site first`, true);
-    return;
-  }
+  if (toolCount > 0) { showToast(`⚠️ Move the ${toolCount} tool${toolCount>1?'s':''} off this site first`, true); return; }
   try {
-    await post({ action: 'removeSite', siteName });
+    await post({ action: 'removeSite', siteName, adminPin: getAdminPin() });
     sites = sites.filter(s => s.name !== siteName);
     if (siteFilter === siteName) setSiteFilter('');
-    buildSiteSelect();
-    renderManage();
+    buildSiteSelect(); buildAdminSiteSelects(); renderAdminTab();
     showToast(`✅ "${siteName}" removed`);
   } catch(e) {
     if (e.message !== 'unauthorized') showToast('⚠️ Failed to remove site', true);
   }
 }
 
-// ── PIN ──────────────────────────────────────────────
+// ── ADMIN: BULK MOVE ─────────────────────────────────────────────
+
+async function bulkMove() {
+  const fromSelect = document.getElementById('bulkFromSite');
+  const toSelect   = document.getElementById('bulkToSite');
+  const byInput    = document.getElementById('bulkMovedBy');
+  const fromSite = fromSelect.value;
+  const toSite   = toSelect.value;
+  const movedBy  = byInput.value.trim();
+  if (!fromSite) { showToast('⚠️ Select a source site', true); return; }
+  if (!toSite)   { showToast('⚠️ Select a destination', true); return; }
+  if (fromSite === toSite) { showToast('⚠️ Source and destination must be different', true); return; }
+  const byErr = validateName(movedBy);
+  if (byErr) { markInvalid(byInput, byErr); return; }
+  markValid(byInput);
+  const toolsHere = tools.filter(t => t.loc === fromSite);
+  if (!toolsHere.length) { showToast(`⚠️ No tools at ${fromSite}`, true); return; }
+  localStorage.setItem('tt_worker_name', movedBy);
+  const btn = document.getElementById('bulkMoveBtn');
+  btn.disabled = true; btn.textContent = 'Moving...';
+  try {
+    const result = await post({ action: 'bulkMove', fromSite, toSite, movedBy, adminPin: getAdminPin() });
+    toolsHere.forEach(t => {
+      moveLog.unshift({ name: t.name, from: fromSite, to: toSite, by: movedBy, time: 'just now' });
+      t.loc = toSite;
+    });
+    buildSiteSelect(); buildAdminSiteSelects(); renderAdminTab();
+    showToast(`✅ ${result.count || toolsHere.length} tools moved to ${toSite}`);
+  } catch(e) {
+    if (e.message !== 'unauthorized') showToast('⚠️ Bulk move failed: ' + e.message, true);
+  }
+  btn.disabled = false; btn.textContent = 'Move All Tools →';
+}
+
+// ── ADMIN: EXPORT CSV ────────────────────────────────────────────
+
+function exportCsv() {
+  const csv  = buildCsv(moveLog);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'tooltrack-move-log-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('⬇ Move log exported');
+}
+
+// ── ADMIN AUTH ───────────────────────────────────────────────────
+
+function updateAdminUI() {
+  const lockBtn  = document.getElementById('adminLockBtn');
+  const adminTab = document.getElementById('adminTab');
+  if (isAdmin) {
+    lockBtn.textContent = '🔓';
+    lockBtn.classList.add('unlocked');
+    adminTab.style.display = '';
+  } else {
+    lockBtn.textContent = '🔒';
+    lockBtn.classList.remove('unlocked');
+    adminTab.style.display = 'none';
+    if (currentTab === 'admin') switchTab('tools', document.querySelector('.nav-tab[data-tab="tools"]'));
+  }
+}
+
+function openAdminPinSheet() {
+  document.getElementById('adminPinInput').value = '';
+  document.getElementById('adminPinOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('adminPinInput').focus(), 300);
+}
+
+function closeAdminPinSheet() {
+  document.getElementById('adminPinOverlay').classList.remove('open');
+}
+
+function saveAdminPIN() {
+  const pin = document.getElementById('adminPinInput').value.trim();
+  if (!pin) { showToast('⚠️ Enter the admin PIN', true); return; }
+  localStorage.setItem('tt_admin_pin', pin);
+  isAdmin = true;
+  closeAdminPinSheet();
+  updateAdminUI();
+  showToast('🔓 Admin mode unlocked');
+}
+
+function adminLogout() {
+  clearAdminPin();
+  updateAdminUI();
+  showToast('🔒 Logged out of admin');
+}
+
+// ── CREW PIN ─────────────────────────────────────────────────────
 
 function openPinSheet() {
   document.getElementById('pinInput').value = '';
@@ -647,7 +1136,7 @@ function savePIN() {
   showToast('PIN saved — try again');
 }
 
-// ── TOAST ────────────────────────────────────────────
+// ── TOAST ────────────────────────────────────────────────────────
 
 let toastTimer;
 function showToast(msg, isError = false) {
@@ -659,49 +1148,72 @@ function showToast(msg, isError = false) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
 
-// ── EVENT DELEGATION ─────────────────────────────────
-// Replaces all inline onclick on user-data elements (XSS prevention)
+// ── EVENT DELEGATION ─────────────────────────────────────────────
 
 document.addEventListener('click', e => {
-  // Move button on tool card
   const moveBtn = e.target.closest('.move-btn');
   if (moveBtn) { openSheet(moveBtn.dataset.tool); return; }
 
-  // Site card in By Site tab
   const siteCard = e.target.closest('.site-card');
   if (siteCard) { jumpSite(siteCard.dataset.site); return; }
 
-  // Site option inside move sheet
   const siteOpt = e.target.closest('.site-opt');
   if (siteOpt) { pickSite(siteOpt.dataset.site, siteOpt); return; }
 
-  // Remove site button in Sites+ tab
-  const removeBtn = e.target.closest('.btn-remove-site');
-  if (removeBtn) { removeSite(removeBtn.dataset.site); return; }
+  const editBtn = e.target.closest('.btn-edit');
+  if (editBtn) { openEditToolSheet(editBtn.dataset.tool); return; }
+
+  const removeToolBtn = e.target.closest('.btn-remove[data-tool]');
+  if (removeToolBtn) { openRemoveToolSheet(removeToolBtn.dataset.tool); return; }
+
+  const removeSiteBtn = e.target.closest('.btn-remove[data-site]');
+  if (removeSiteBtn) { adminRemoveSite(removeSiteBtn.dataset.site); return; }
+
+  const removeChoice = e.target.closest('.remove-choice');
+  if (removeChoice) { selectRemoveChoice(removeChoice.dataset.choice, removeChoice); return; }
 });
 
 document.getElementById('confirmBtn').addEventListener('click', confirmMove);
 document.getElementById('cancelMoveBtn').addEventListener('click', closeSheet);
-document.getElementById('savePinBtn').addEventListener('click', savePIN);
-document.getElementById('pinInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') savePIN();
-});
 document.getElementById('moveOverlay').addEventListener('click', e => {
   if (e.target === document.getElementById('moveOverlay')) closeSheet();
 });
 
-// ── INIT ─────────────────────────────────────────────
+document.getElementById('confirmEditToolBtn').addEventListener('click', confirmEditTool);
+document.getElementById('cancelEditToolBtn').addEventListener('click', closeEditToolSheet);
+document.getElementById('editToolOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('editToolOverlay')) closeEditToolSheet();
+});
+
+document.getElementById('confirmRemoveToolBtn').addEventListener('click', confirmRemoveTool);
+document.getElementById('cancelRemoveToolBtn').addEventListener('click', closeRemoveToolSheet);
+document.getElementById('removeToolOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('removeToolOverlay')) closeRemoveToolSheet();
+});
+
+document.getElementById('savePinBtn').addEventListener('click', savePIN);
+document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') savePIN(); });
+document.getElementById('pinOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('pinOverlay')) document.getElementById('pinOverlay').classList.remove('open');
+});
+
+document.getElementById('saveAdminPinBtn').addEventListener('click', saveAdminPIN);
+document.getElementById('cancelAdminPinBtn').addEventListener('click', closeAdminPinSheet);
+document.getElementById('adminPinInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveAdminPIN(); });
+document.getElementById('adminPinOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('adminPinOverlay')) closeAdminPinSheet();
+});
+
+document.getElementById('adminLockBtn').addEventListener('click', () => {
+  if (isAdmin) adminLogout(); else openAdminPinSheet();
+});
+
+// ── INIT ─────────────────────────────────────────────────────────
 
 async function init() {
-  // Prompt for PIN on first use
+  if (getAdminPin()) { isAdmin = true; updateAdminUI(); }
   if (!getPin()) openPinSheet();
-
-  try {
-    await syncAll(true);
-  } catch(e) {
-    document.getElementById('loadingMsg').textContent = 'Could not load data.';
-    showToast('⚠️ Could not connect', true);
-  }
+  await syncAll(true);
   document.getElementById('loadingOverlay').classList.add('hidden');
   setTimeout(() => document.getElementById('loadingOverlay').style.display = 'none', 400);
 }

@@ -3,7 +3,7 @@
  * Run with: npm test
  */
 
-const { esc, locClass, siteNames, filterTools, filterSites, filterLog } = require('../src/utils');
+const { esc, locClass, siteNames, filterTools, filterSites, filterLog, buildCsv } = require('../src/utils');
 
 // ── esc() ─────────────────────────────────────────────────────────────────────
 
@@ -207,5 +207,50 @@ describe('filterLog()', () => {
 
   test('handles empty input', () => {
     expect(filterLog(null, '', '')).toEqual([]);
+  });
+});
+
+// ── buildCsv() ────────────────────────────────────────────────────────────────
+
+describe('buildCsv()', () => {
+  const log = [
+    { name: 'Chainsaw', from: 'Warehouse', to: 'Site A', by: 'Carlos', time: 'Apr 1, 2025 09:00' },
+    { name: 'Rake',     from: 'Site A',    to: 'Site B', by: 'Marco',  time: 'Apr 2, 2025 10:00' },
+  ];
+
+  test('produces a header row', () => {
+    const csv = buildCsv(log);
+    expect(csv.split('\r\n')[0]).toBe('Tool Name,From,To,Moved By,Time');
+  });
+
+  test('produces one data row per log entry', () => {
+    const lines = buildCsv(log).split('\r\n');
+    expect(lines).toHaveLength(3); // header + 2 rows
+    // Time value contains a comma so it gets quoted per CSV spec
+    expect(lines[1]).toBe('Chainsaw,Warehouse,Site A,Carlos,"Apr 1, 2025 09:00"');
+  });
+
+  test('wraps values containing commas in double quotes', () => {
+    const csv = buildCsv([{ name: 'Saw, big', from: 'A', to: 'B', by: 'X', time: 'T' }]);
+    expect(csv).toContain('"Saw, big"');
+  });
+
+  test('escapes double quotes inside values', () => {
+    const csv = buildCsv([{ name: 'He said "hi"', from: 'A', to: 'B', by: 'X', time: 'T' }]);
+    expect(csv).toContain('"He said ""hi"""');
+  });
+
+  test('handles null/undefined fields gracefully', () => {
+    expect(() => buildCsv([{ name: null, from: undefined, to: 'B', by: '', time: '' }])).not.toThrow();
+  });
+
+  test('returns header only for empty log', () => {
+    const csv = buildCsv([]);
+    expect(csv).toBe('Tool Name,From,To,Moved By,Time');
+  });
+
+  test('returns header only for null input', () => {
+    const csv = buildCsv(null);
+    expect(csv).toBe('Tool Name,From,To,Moved By,Time');
   });
 });

@@ -67,6 +67,21 @@ function filterLog(moveLog, query, siteFilter) {
   });
 }
 
+// Builds a CSV string from the move log array for client-side download.
+function buildCsv(moveLog) {
+  const header = ['Tool Name', 'From', 'To', 'Moved By', 'Time'];
+  const escape = v => {
+    const s = String(v == null ? '' : v);
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? '"' + s.replace(/"/g, '""') + '"'
+      : s;
+  };
+  const rows = (moveLog || []).map(h =>
+    [h.name, h.from, h.to, h.by, h.time].map(escape).join(',')
+  );
+  return [header.join(','), ...rows].join('\r\n');
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { esc, locClass, siteNames, filterTools, filterSites, filterLog };
+  module.exports = { esc, locClass, siteNames, filterTools, filterSites, filterLog, buildCsv };
 }

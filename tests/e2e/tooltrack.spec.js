@@ -41,10 +41,18 @@ async function mockApi(page) {
   });
 }
 
-// Inject a PIN into localStorage so writes don't hit the PIN prompt
+// Inject crew PIN into localStorage so writes don't hit the PIN prompt
 async function injectPin(page) {
   await page.addInitScript(() => {
     localStorage.setItem('tt_pin', 'testpin1234');
+  });
+}
+
+// Inject admin PIN into localStorage so admin tab is unlocked
+async function injectAdminPin(page) {
+  await page.addInitScript(() => {
+    localStorage.setItem('tt_pin', 'testpin1234');
+    localStorage.setItem('tt_admin_pin', 'adminpin1234');
   });
 }
 
@@ -58,7 +66,7 @@ test.describe('Initial load', () => {
   });
 
   test('shows app title', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('ToolTrack');
+    await expect(page.locator('.logo')).toContainText('ToolTrack');
   });
 
   test('displays tool cards after sync', async ({ page }) => {
@@ -79,13 +87,13 @@ test.describe('Search and filter', () => {
   });
 
   test('search by tool name narrows results', async ({ page }) => {
-    await page.fill('#searchInput', 'chainsaw');
+    await page.fill('#mainSearchInput', 'chainsaw');
     await expect(page.locator('.tool-card')).toHaveCount(1);
     await expect(page.locator('.tool-card')).toContainText('Chainsaw');
   });
 
   test('search by location narrows results', async ({ page }) => {
-    await page.fill('#searchInput', 'Job Site A');
+    await page.fill('#mainSearchInput', 'Job Site A');
     await expect(page.locator('.tool-card')).toHaveCount(2);
   });
 
@@ -101,8 +109,8 @@ test.describe('Search and filter', () => {
   });
 
   test('clearing search restores all cards', async ({ page }) => {
-    await page.fill('#searchInput', 'chainsaw');
-    await page.fill('#searchInput', '');
+    await page.fill('#mainSearchInput', 'chainsaw');
+    await page.fill('#mainSearchInput', '');
     await expect(page.locator('.tool-card')).toHaveCount(4);
   });
 });
@@ -115,20 +123,20 @@ test.describe('Move log tab', () => {
   });
 
   test('shows move log entries', async ({ page }) => {
-    await page.click('[data-tab="log"]');
-    await expect(page.locator('.log-row')).toHaveCount(1);
+    await page.click('.nav-tab:has-text("Move Log")');
+    await expect(page.locator('.history-card')).toHaveCount(1);
   });
 
   test('log search filters by tool name', async ({ page }) => {
-    await page.click('[data-tab="log"]');
-    await page.fill('#searchInput', 'chainsaw');
-    await expect(page.locator('.log-row')).toHaveCount(1);
+    await page.click('.nav-tab:has-text("Move Log")');
+    await page.fill('#mainSearchInput', 'chainsaw');
+    await expect(page.locator('.history-card')).toHaveCount(1);
   });
 
   test('log search with no match shows empty state', async ({ page }) => {
-    await page.click('[data-tab="log"]');
-    await page.fill('#searchInput', 'zzznomatch');
-    await expect(page.locator('.log-row')).toHaveCount(0);
+    await page.click('.nav-tab:has-text("Move Log")');
+    await page.fill('#mainSearchInput', 'zzznomatch');
+    await expect(page.locator('.history-card')).toHaveCount(0);
   });
 });
 
@@ -140,34 +148,8 @@ test.describe('Sites tab', () => {
   });
 
   test('shows site cards with tools', async ({ page }) => {
-    await page.click('[data-tab="sites"]');
+    await page.click('.nav-tab:has-text("By Site")');
     await expect(page.locator('.site-card')).toHaveCount(2);
-  });
-
-  test('add site form is visible above tabs bar', async ({ page }) => {
-    await page.click('[data-tab="manage"]');
-    await expect(page.locator('#newSiteName')).toBeVisible();
-    await expect(page.locator('#newSiteAddedBy')).toBeVisible();
-  });
-
-  test('adding a site calls POST and updates list', async ({ page }) => {
-    let postedBody = null;
-    await page.route('**/macros/s/**', async route => {
-      if (route.request().method() === 'POST') {
-        postedBody = JSON.parse(route.request().postData());
-        await route.fulfill({ json: { success: true } });
-      } else {
-        await route.fulfill({ json: MOCK_DATA });
-      }
-    });
-
-    await page.click('[data-tab="manage"]');
-    await page.fill('#newSiteName', 'New Test Site');
-    await page.fill('#newSiteAddedBy', 'Tester');
-    await page.click('.btn-add-site');
-
-    await expect(postedBody?.action).toBe('addSite');
-    await expect(postedBody?.siteName).toBe('New Test Site');
   });
 });
 
@@ -180,7 +162,7 @@ test.describe('Move sheet', () => {
 
   test('opens move sheet when Move button clicked', async ({ page }) => {
     await page.locator('.move-btn').first().click();
-    await expect(page.locator('#sheet')).toBeVisible();
+    await expect(page.locator('#moveOverlay')).toBeVisible();
   });
 
   test('move sheet lists available sites', async ({ page }) => {
@@ -188,7 +170,19 @@ test.describe('Move sheet', () => {
     await expect(page.locator('.site-opt')).toHaveCount(2);
   });
 
-  test('confirming move closes sheet and posts to API', async ({ page }) => {
+  test('confirming move requires name and selected site', async ({ page }) => {
+    await page.locator('.move-btn').first().click();
+    // Try confirm without selecting site — should not post
+    let postCount = 0;
+    await page.route('**/macros/s/**', async route => {
+      if (route.request().method() === 'POST') { postCount++; }
+      await route.fulfill({ json: { success: true } });
+    });
+    await page.click('#confirmBtn');
+    expect(postCount).toBe(0);
+  });
+
+  test('confirming move with site and name closes sheet and posts', async ({ page }) => {
     let postCount = 0;
     await page.route('**/macros/s/**', async route => {
       if (route.request().method() === 'POST') {
@@ -201,10 +195,11 @@ test.describe('Move sheet', () => {
 
     await page.locator('.move-btn').first().click();
     await page.locator('.site-opt').first().click();
-    await page.click('#confirmMove');
+    await page.fill('#movedByInput', 'Test User');
+    await page.click('#confirmBtn');
 
     expect(postCount).toBe(1);
-    await expect(page.locator('#sheet')).not.toBeVisible();
+    await expect(page.locator('#moveOverlay')).not.toBeVisible();
   });
 });
 
@@ -228,19 +223,70 @@ test.describe('PIN authentication', () => {
 
     await page.locator('.move-btn').first().click();
     await page.locator('.site-opt').first().click();
-    await page.click('#confirmMove');
+    await page.fill('#movedByInput', 'Test User');
+    await page.click('#confirmBtn');
 
     await expect(page.locator('#pinOverlay')).toBeVisible();
   });
 
-  test('correct PIN allows write and closes overlay', async ({ page }) => {
+  test('correct PIN saves and closes overlay', async ({ page }) => {
     await mockApi(page);
     await page.goto('/');
 
     await page.locator('#pinInput').fill('correctpin');
-    await page.locator('#pinSubmit').click();
+    await page.locator('#savePinBtn').click();
 
     await expect(page.locator('#pinOverlay')).not.toBeVisible();
+  });
+});
+
+test.describe('Admin tab', () => {
+  test.beforeEach(async ({ page }) => {
+    await mockApi(page);
+    await injectAdminPin(page);
+    await page.goto('/');
+  });
+
+  test('admin tab is visible when admin PIN is stored', async ({ page }) => {
+    await expect(page.locator('#adminTab')).toBeVisible();
+  });
+
+  test('admin lock button shows unlocked state', async ({ page }) => {
+    await expect(page.locator('#adminLockBtn')).toContainText('🔓');
+  });
+
+  test('admin tab shows dashboard stats', async ({ page }) => {
+    await page.click('#adminTab');
+    await expect(page.locator('#statGrid')).toBeVisible();
+  });
+
+  test('admin tab shows tool inventory', async ({ page }) => {
+    await page.click('#adminTab');
+    await expect(page.locator('#adminToolList')).toBeVisible();
+    await expect(page.locator('.admin-tool-row')).toHaveCount(4);
+  });
+
+  test('admin logout hides admin tab', async ({ page }) => {
+    await page.click('#adminTab');
+    await page.click('button:has-text("Log out of Admin")');
+    await expect(page.locator('#adminTab')).not.toBeVisible();
+  });
+});
+
+test.describe('Admin PIN prompt', () => {
+  test('admin tab hidden before admin PIN entered', async ({ page }) => {
+    await mockApi(page);
+    await injectPin(page);
+    await page.goto('/');
+    await expect(page.locator('#adminTab')).not.toBeVisible();
+  });
+
+  test('lock button opens admin PIN overlay', async ({ page }) => {
+    await mockApi(page);
+    await injectPin(page);
+    await page.goto('/');
+    await page.click('#adminLockBtn');
+    await expect(page.locator('#adminPinOverlay')).toBeVisible();
   });
 });
 
@@ -255,7 +301,6 @@ test.describe('XSS resistance', () => {
     await injectPin(page);
     await page.goto('/');
 
-    // Confirm no alert dialog was triggered
     let alertTriggered = false;
     page.on('dialog', async dialog => {
       alertTriggered = true;

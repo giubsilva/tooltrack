@@ -10,23 +10,37 @@
 //
 // ── FIRST-TIME SETUP ─────────────────────────────────────────────
 // 1. Open this script in the Apps Script editor.
-// 2. Edit the PIN value in setupPin() below.
-// 3. Run setupPin() ONCE from the editor (▶ Run button).
-// 4. Delete or comment out setupPin() after running it.
+// 2. Edit the PIN values in setupPin() and setupAdminPin() below.
+// 3. Run setupPin() ONCE, then run setupAdminPin() ONCE.
+// 4. Delete both setup functions after running them.
 // 5. Deploy as Web App: Execute as "Me", Access "Anyone".
 // ─────────────────────────────────────────────────────────────────
 
-// Run this ONE TIME from the editor to set your access PIN, then delete it.
+// Run ONCE to set the crew PIN, then delete.
 function setupPin() {
   PropertiesService.getScriptProperties().setProperty('TOOLTRACK_PIN', 'CHANGE_THIS_PIN');
-  Logger.log('PIN set. Delete this function now.');
+  Logger.log('Crew PIN set. Delete this function now.');
+}
+
+// Run ONCE to set the admin PIN, then delete.
+function setupAdminPin() {
+  PropertiesService.getScriptProperties().setProperty('TOOLTRACK_ADMIN_PIN', 'CHANGE_THIS_ADMIN_PIN');
+  Logger.log('Admin PIN set. Delete this function now.');
 }
 
 // ── VALIDATION HELPERS ────────────────────────────────────────────
 
 function requirePin(pin) {
   const stored = PropertiesService.getScriptProperties().getProperty('TOOLTRACK_PIN');
-  if (!stored) return; // No PIN configured — allow (useful during initial setup)
+  if (!stored) return;
+  if (typeof pin !== 'string' || pin.trim() !== stored) {
+    throw new Error('unauthorized');
+  }
+}
+
+function requireAdminPin(pin) {
+  const stored = PropertiesService.getScriptProperties().getProperty('TOOLTRACK_ADMIN_PIN');
+  if (!stored) return;
   if (typeof pin !== 'string' || pin.trim() !== stored) {
     throw new Error('unauthorized');
   }
@@ -40,6 +54,12 @@ function requireString(value, field, maxLen) {
     throw new Error(field + ' exceeds maximum length of ' + maxLen + ' characters');
   }
   return value.trim();
+}
+
+// Strips control characters and trims. Applied to all user-supplied strings before writing to sheet.
+function sanitizeText(value) {
+  if (typeof value !== 'string') return '';
+  return value.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim();
 }
 
 // ── READ ──────────────────────────────────────────────────────────
@@ -90,18 +110,16 @@ function doGet() {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
-
-    // All write operations require a valid PIN
-    requirePin(payload.pin);
-
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-    // ── Move tool ───────────────────────────────────────────────
+    // ── Crew actions (crew PIN) ──────────────────────────────────
+
     if (payload.action === 'move') {
-      const toolName = requireString(payload.toolName, 'toolName', 200);
-      const newLoc   = requireString(payload.newLoc,   'newLoc',   200);
-      const fromLoc  = requireString(payload.fromLoc,  'fromLoc',  200);
-      const movedBy  = requireString(payload.movedBy || 'Unknown', 'movedBy', 100);
+      requirePin(payload.pin);
+      const toolName = sanitizeText(requireString(payload.toolName, 'toolName', 200));
+      const newLoc   = sanitizeText(requireString(payload.newLoc,   'newLoc',   200));
+      const fromLoc  = sanitizeText(requireString(payload.fromLoc,  'fromLoc',  200));
+      const movedBy  = sanitizeText(requireString(payload.movedBy,  'movedBy',  100));
 
       const toolsSheet = ss.getSheetByName('ToolInventory');
       const rows = toolsSheet.getDataRange().getValues();
@@ -121,10 +139,87 @@ function doPost(e) {
       return json({ success: true });
     }
 
-    // ── Add site ────────────────────────────────────────────────
+    // ── Admin actions (admin PIN) ────────────────────────────────
+
+    if (payload.action === 'addTool') {
+      requireAdminPin(payload.adminPin);
+      const name    = sanitizeText(requireString(payload.name,    'name',    200));
+      const notes   = sanitizeText(requireString(payload.notes || '', 'notes', 500) || '');
+      const loc     = sanitizeText(requireString(payload.loc,     'loc',     200));
+      const addedBy = sanitizeText(requireString(payload.addedBy, 'addedBy', 100));
+
+      const toolsSheet = ss.getSheetByName('ToolInventory');
+      const existing = toolsSheet.getDataRange().getValues();
+      const duplicate = existing.slice(1).some(r => String(r[0]).trim().toLowerCase() === name.toLowerCase());
+      if (duplicate) return json({ error: 'A tool with that name already exists' });
+
+      toolsSheet.appendRow([name, notes, loc]);
+      ss.getSheetByName('MoveLog').appendRow([name, '', loc, addedBy + ' (added)', timestamp()]);
+      return json({ success: true });
+    }
+
+    if (payload.action === 'editTool') {
+      requireAdminPin(payload.adminPin);
+      const originalName = sanitizeText(requireString(payload.originalName, 'originalName', 200));
+      const newName      = sanitizeText(requireString(payload.name,         'name',         200));
+      const newNotes     = sanitizeText(payload.notes != null ? String(payload.notes) : '');
+      const editedBy     = sanitizeText(requireString(payload.editedBy,     'editedBy',     100));
+
+      const toolsSheet = ss.getSheetByName('ToolInventory');
+      const rows = toolsSheet.getDataRange().getValues();
+
+      for (let i = 1; i < rows.length; i++) {
+        if (String(rows[i][0]).trim() === originalName) {
+          toolsSheet.getRange(i + 1, 1).setValue(newName);
+          toolsSheet.getRange(i + 1, 2).setValue(newNotes);
+          ss.getSheetByName('MoveLog').appendRow([originalName, '', '', editedBy + ' (edited)', timestamp()]);
+          return json({ success: true });
+        }
+      }
+      return json({ error: 'Tool not found: ' + originalName });
+    }
+
+    if (payload.action === 'decommissionTool') {
+      requireAdminPin(payload.adminPin);
+      const toolName = sanitizeText(requireString(payload.toolName, 'toolName', 200));
+      const movedBy  = sanitizeText(requireString(payload.movedBy,  'movedBy',  100));
+
+      const toolsSheet = ss.getSheetByName('ToolInventory');
+      const rows = toolsSheet.getDataRange().getValues();
+
+      for (let i = 1; i < rows.length; i++) {
+        if (String(rows[i][0]).trim() === toolName) {
+          const fromLoc = String(rows[i][2] || '');
+          toolsSheet.getRange(i + 1, 3).setValue('Decommissioned');
+          ss.getSheetByName('MoveLog').appendRow([toolName, fromLoc, 'Decommissioned', movedBy, timestamp()]);
+          return json({ success: true });
+        }
+      }
+      return json({ error: 'Tool not found: ' + toolName });
+    }
+
+    if (payload.action === 'deleteTool') {
+      requireAdminPin(payload.adminPin);
+      const toolName  = sanitizeText(requireString(payload.toolName,  'toolName',  200));
+      const deletedBy = sanitizeText(requireString(payload.deletedBy, 'deletedBy', 100));
+
+      const toolsSheet = ss.getSheetByName('ToolInventory');
+      const rows = toolsSheet.getDataRange().getValues();
+
+      for (let i = 1; i < rows.length; i++) {
+        if (String(rows[i][0]).trim() === toolName) {
+          toolsSheet.deleteRow(i + 1);
+          ss.getSheetByName('MoveLog').appendRow([toolName, '', '', deletedBy + ' (deleted)', timestamp()]);
+          return json({ success: true });
+        }
+      }
+      return json({ error: 'Tool not found: ' + toolName });
+    }
+
     if (payload.action === 'addSite') {
-      const siteName = requireString(payload.siteName, 'siteName', 200);
-      const addedBy  = requireString(payload.addedBy,  'addedBy',  100);
+      requireAdminPin(payload.adminPin);
+      const siteName = sanitizeText(requireString(payload.siteName, 'siteName', 200));
+      const addedBy  = sanitizeText(requireString(payload.addedBy,  'addedBy',  100));
 
       const sitesSheet = ss.getSheetByName('JobSites');
       const existing   = sitesSheet.getDataRange().getValues();
@@ -135,9 +230,9 @@ function doPost(e) {
       return json({ success: true });
     }
 
-    // ── Remove site ─────────────────────────────────────────────
     if (payload.action === 'removeSite') {
-      const siteName   = requireString(payload.siteName, 'siteName', 200);
+      requireAdminPin(payload.adminPin);
+      const siteName   = sanitizeText(requireString(payload.siteName, 'siteName', 200));
       const sitesSheet = ss.getSheetByName('JobSites');
       const rows       = sitesSheet.getDataRange().getValues();
 
@@ -147,14 +242,37 @@ function doPost(e) {
           return json({ success: true });
         }
       }
-
       return json({ error: 'Site not found: ' + siteName });
+    }
+
+    if (payload.action === 'bulkMove') {
+      requireAdminPin(payload.adminPin);
+      const fromSite = sanitizeText(requireString(payload.fromSite, 'fromSite', 200));
+      const toSite   = sanitizeText(requireString(payload.toSite,   'toSite',   200));
+      const movedBy  = sanitizeText(requireString(payload.movedBy,  'movedBy',  100));
+
+      if (fromSite === toSite) return json({ error: 'Source and destination must be different' });
+
+      const toolsSheet = ss.getSheetByName('ToolInventory');
+      const logSheet   = ss.getSheetByName('MoveLog');
+      const rows = toolsSheet.getDataRange().getValues();
+      const ts = timestamp();
+      let count = 0;
+
+      for (let i = 1; i < rows.length; i++) {
+        if (String(rows[i][2]).trim() === fromSite) {
+          toolsSheet.getRange(i + 1, 3).setValue(toSite);
+          logSheet.appendRow([String(rows[i][0]), fromSite, toSite, movedBy, ts]);
+          count++;
+        }
+      }
+
+      return json({ success: true, count });
     }
 
     return json({ error: 'Unknown action' });
 
   } catch (e) {
-    // Return generic message for auth failures to avoid leaking info
     if (e.message === 'unauthorized') return json({ error: 'unauthorized' });
     return json({ error: e.message });
   }
