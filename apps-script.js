@@ -96,6 +96,7 @@ function doGet() {
         name:    String(r[0] || ''),
         addedBy: String(r[1] || ''),
         addedAt: String(r[2] || ''),
+        jobCode: String(r[3] || ''),
       }));
 
     return json({ tools, log, sites });
@@ -219,6 +220,7 @@ function doPost(e) {
     if (payload.action === 'addSite') {
       requireAdminPin(payload.adminPin);
       const siteName = sanitizeText(requireString(payload.siteName, 'siteName', 200));
+      const jobCode  = sanitizeText(payload.jobCode ? String(payload.jobCode) : '');
       const addedBy  = sanitizeText(requireString(payload.addedBy,  'addedBy',  100));
 
       const sitesSheet = ss.getSheetByName('JobSites');
@@ -226,8 +228,26 @@ function doPost(e) {
       const duplicate  = existing.slice(1).some(r => String(r[0]).toLowerCase() === siteName.toLowerCase());
       if (duplicate) return json({ error: 'Site already exists' });
 
-      sitesSheet.appendRow([siteName, addedBy, timestamp()]);
+      sitesSheet.appendRow([siteName, addedBy, timestamp(), jobCode]);
       return json({ success: true });
+    }
+
+    if (payload.action === 'editSite') {
+      requireAdminPin(payload.adminPin);
+      const siteName = sanitizeText(requireString(payload.siteName, 'siteName', 200));
+      const jobCode  = sanitizeText(payload.jobCode ? String(payload.jobCode) : '');
+      const editedBy = sanitizeText(requireString(payload.editedBy, 'editedBy', 100));
+
+      const sitesSheet = ss.getSheetByName('JobSites');
+      const rows = sitesSheet.getDataRange().getValues();
+
+      for (let i = 1; i < rows.length; i++) {
+        if (String(rows[i][0]).trim() === siteName) {
+          sitesSheet.getRange(i + 1, 4).setValue(jobCode);
+          return json({ success: true });
+        }
+      }
+      return json({ error: 'Site not found: ' + siteName });
     }
 
     if (payload.action === 'removeSite') {

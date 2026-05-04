@@ -260,8 +260,9 @@ test.describe('Admin tab', () => {
     await expect(page.locator('#statGrid')).toBeVisible();
   });
 
-  test('admin tab shows tool inventory', async ({ page }) => {
+  test('admin tab shows tool inventory after clicking Tools sub-tab', async ({ page }) => {
     await page.click('#adminTab');
+    await page.click('.admin-sub-tab:has-text("Tools")');
     await expect(page.locator('#adminToolList')).toBeVisible();
     await expect(page.locator('.admin-tool-row')).toHaveCount(4);
   });
