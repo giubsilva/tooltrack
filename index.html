@@ -323,6 +323,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
         <input type="text" class="input-field" id="newToolAddedBy" placeholder="Your name *" maxlength="100" autocomplete="name">
         <button class="btn-primary" id="addToolBtn" onclick="addTool()">Add Tool</button>
       </div>
+      <input type="search" class="input-field" id="adminToolSearch" placeholder="Search tools..." autocomplete="off" autocorrect="off" spellcheck="false" oninput="adminToolSearch=this.value;renderAdminToolList()" style="margin:0 0 10px">
       <div id="adminToolList"></div>
     </div>
 
@@ -337,6 +338,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--te
           <button class="btn-primary" id="adminAddSiteBtn" onclick="adminAddSite()">Add Site</button>
         </div>
       </div>
+      <input type="search" class="input-field" id="adminSiteSearch" placeholder="Search sites..." autocomplete="off" autocorrect="off" spellcheck="false" oninput="adminSiteSearch=this.value;renderAdminSiteList()" style="margin:0 0 10px">
       <div id="adminSiteList"></div>
     </div>
 
@@ -557,6 +559,8 @@ let removeToolTarget = null;
 let removeToolChoice = null;
 let editToolOriginal = null;
 let editSiteTarget   = null;
+let adminToolSearch  = '';
+let adminSiteSearch  = '';
 
 const savedName     = () => localStorage.getItem('tt_worker_name') || '';
 const getPin        = () => localStorage.getItem('tt_pin') || '';
@@ -569,6 +573,17 @@ const clearAdminPin = () => { localStorage.removeItem('tt_admin_pin'); isAdmin =
 function siteLabel(name) {
   const s = sites.find(s => s.name === name);
   return (s && s.jobCode) ? `${s.jobCode} - ${name}` : name;
+}
+
+function sortedSiteNames() {
+  return siteNames(sites, tools).sort((a, b) => {
+    const codeA = (sites.find(s => s.name === a) || {}).jobCode || '';
+    const codeB = (sites.find(s => s.name === b) || {}).jobCode || '';
+    if (codeA && codeB) return codeA.localeCompare(codeB);
+    if (codeA) return -1;
+    if (codeB) return 1;
+    return a.localeCompare(b);
+  });
 }
 
 // ── API ──────────────────────────────────────────────────────────
@@ -639,14 +654,14 @@ function updateSyncTime() {
 
 function buildSiteSelect() {
   const select = document.getElementById('siteSelect');
-  const names  = siteNames(sites, tools);
+  const names  = sortedSiteNames();
   select.innerHTML =
     '<option value="">All Sites</option>' +
     names.map(s => `<option value="${esc(s)}" ${siteFilter===s?'selected':''}>${esc(siteLabel(s))}</option>`).join('');
 }
 
 function buildAdminSiteSelects() {
-  const names = siteNames(sites, tools);
+  const names = sortedSiteNames();
   const opts = names.map(s => `<option value="${esc(s)}">${esc(siteLabel(s))}</option>`).join('');
   const newToolLoc = document.getElementById('newToolLoc');
   if (newToolLoc) newToolLoc.innerHTML = '<option value="">-- Select starting location --</option>' + opts;
@@ -709,7 +724,14 @@ function renderTools() {
 
 function renderSites() {
   const el      = document.getElementById('siteList');
-  const visible = filterSites(sites, tools, searchQuery(), siteFilter);
+  const visible = filterSites(sites, tools, searchQuery(), siteFilter).sort((a, b) => {
+    const codeA = (sites.find(s => s.name === a) || {}).jobCode || '';
+    const codeB = (sites.find(s => s.name === b) || {}).jobCode || '';
+    if (codeA && codeB) return codeA.localeCompare(codeB);
+    if (codeA) return -1;
+    if (codeB) return 1;
+    return a.localeCompare(b);
+  });
   let html = '';
   for (const site of visible) {
     const st    = tools.filter(t => t.loc === site);
@@ -794,7 +816,12 @@ function renderAdminDashboard() {
 function renderAdminToolList() {
   const el = document.getElementById('adminToolList');
   if (!tools.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔧</div><p>No tools in inventory.</p></div>'; return; }
-  el.innerHTML = tools.map(t => {
+  const q = adminToolSearch.toLowerCase();
+  const filtered = q
+    ? tools.filter(t => t.name.toLowerCase().includes(q) || (t.notes||'').toLowerCase().includes(q) || (t.loc||'').toLowerCase().includes(q))
+    : tools;
+  if (!filtered.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No tools match your search</p></div>'; return; }
+  el.innerHTML = filtered.map(t => {
     const cls = locClass(t.loc);
     return `<div class="admin-tool-row">
       <div class="admin-tool-top">
@@ -815,7 +842,18 @@ function renderAdminToolList() {
 function renderAdminSiteList() {
   const el = document.getElementById('adminSiteList');
   if (!sites.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📍</div><p>No sites yet.</p></div>'; return; }
-  el.innerHTML = sites.map(s => {
+  const q = adminSiteSearch.toLowerCase();
+  const filtered = q
+    ? sites.filter(s => s.name.toLowerCase().includes(q) || (s.jobCode||'').toLowerCase().includes(q))
+    : sites;
+  if (!filtered.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No sites match your search</p></div>'; return; }
+  const sorted = [...filtered].sort((a, b) => {
+    if (a.jobCode && b.jobCode) return a.jobCode.localeCompare(b.jobCode);
+    if (a.jobCode) return -1;
+    if (b.jobCode) return 1;
+    return a.name.localeCompare(b.name);
+  });
+  el.innerHTML = sorted.map(s => {
     const toolCount  = tools.filter(t => t.loc === s.name).length;
     const jobCodeTag = s.jobCode
       ? `<span style="color:var(--accent);font-weight:700;margin-right:5px">${esc(s.jobCode)}</span>`
@@ -829,7 +867,7 @@ function renderAdminSiteList() {
         <button class="btn-edit" data-site="${esc(s.name)}">Edit</button>
         ${toolCount === 0
           ? `<button class="btn-remove" data-site="${esc(s.name)}">Remove</button>`
-          : `<div class="admin-site-count">${toolCount} tool${toolCount>1?'s':''}</div>`
+          : `<div class="admin-site-count">${toolCount} tool${toolCount>1?'s':''} — move off first</div>`
         }
       </div>
     </div>`;
@@ -840,6 +878,12 @@ function renderAdminSiteList() {
 
 function switchAdminTab(tab, el) {
   adminSubTab = tab;
+  adminToolSearch = '';
+  adminSiteSearch = '';
+  const toolSearchEl = document.getElementById('adminToolSearch');
+  const siteSearchEl = document.getElementById('adminSiteSearch');
+  if (toolSearchEl) toolSearchEl.value = '';
+  if (siteSearchEl) siteSearchEl.value = '';
   document.querySelectorAll('.admin-sub-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   ['Dashboard','Tools','Sites','Bulk','Export'].forEach(name => {
