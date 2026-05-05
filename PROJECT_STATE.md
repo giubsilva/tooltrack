@@ -6,10 +6,12 @@ A lightweight tool-location tracker for field crews at Fossil Landscape. Workers
 **Live app:** https://giubsilva.github.io/tooltrack/
 
 ## Current status
-- Fully deployed and working at the live URL above. **Admin layer shipped 2026-05-04.**
-- `doGet` returns tools, move log, and job sites (unauthenticated).
-- `doPost` handles crew action `move` (crew PIN) and admin actions `addTool`, `editTool`, `decommissionTool`, `deleteTool`, `bulkMove`, `addSite`, `removeSite` (admin PIN).
-- Frontend has four crew tabs: Tools, By Site, Move Log (Sites+ removed — admin only). Admin tab appears after admin PIN auth.
+- Fully deployed and working at the live URL above. **Last major update: 2026-05-04.**
+- `doGet` returns tools, move log, and job sites (unauthenticated). Sites now include `jobCode` field.
+- `doPost` handles crew action `move` (crew PIN) and admin actions `addTool`, `editTool`, `decommissionTool`, `deleteTool`, `bulkMove`, `addSite`, `editSite`, `removeSite` (admin PIN).
+- Frontend has four crew tabs: Tools, By Site, Move Log. Admin tab (after PIN auth) has five sub-tabs: Dashboard, Tools, Sites, Bulk, Export.
+- Job codes on sites: stored in `JobSites` col 4, displayed as `"26-0006 - 160 31st St"` everywhere a site name appears.
+- Dark/light mode toggle in header (moon/sun icon); preference saved to `localStorage` (`tt_theme`).
 - XSS protection in place: all user data rendered via `esc()`, event handlers use `data-*` attributes and event delegation.
 - Input validation on all text inputs: required fields, `maxlength` attrs, character allowlist, backend `sanitizeText()`.
 - 38 unit tests pass for all utility functions in `src/utils.js` (including `buildCsv`).
@@ -32,17 +34,17 @@ Browser (index.html)
   │                         (loaded by both index.html and the Jest test suite)
   │
   └── Google Apps Script    Web App URL in CONFIG.scriptUrl
-        │  doGet  → returns { tools, log, sites } — no auth
+        │  doGet  → returns { tools, log, sites } — no auth; sites include jobCode
         │  doPost (crew PIN)  → move
         │  doPost (admin PIN) → addTool | editTool | decommissionTool | deleteTool
-        │                       bulkMove | addSite | removeSite
+        │                       bulkMove | addSite | editSite | removeSite
         └── Google Sheet
               ├── ToolInventory   Name | Notes | Location
               ├── MoveLog         ToolName | FromLocation | ToLocation | MovedBy | MoveTime
               └── JobSites        SiteName | AddedBy | AddedAt
 ```
 
-**localStorage keys**: `tt_pin` (crew PIN), `tt_admin_pin` (admin PIN), `tt_worker_name` (pre-fills name fields).
+**localStorage keys**: `tt_pin` (crew PIN), `tt_admin_pin` (admin PIN), `tt_worker_name` (pre-fills name fields), `tt_theme` (dark/light preference).
 
 **Action bar** swaps content per tab: Tools/By Site/Move Log show the search+filter bar. Sites+ removed from crew nav — site management is admin-only.
 
@@ -116,9 +118,9 @@ These were audited on 2026-05-04.
 ## Pending features (approved 2026-05-04, not yet built)
 
 ### In scope — build before SQL migration
-1. **Admin sub-tabs** — convert stacked admin sections into horizontal sub-tabs: Dashboard / Tools / Sites / Bulk / Export
-2. **Job code on sites** — add `jobCode` column to `JobSites`; display format `"26-0006 - 160 31st St"` everywhere a site name appears; admin sets it when adding/editing a site
-3. **Dark/Light mode** — CSS custom properties, `data-theme` toggle, sun/moon button in header, preference saved to `localStorage`
+1. ~~**Admin sub-tabs**~~ — ✅ shipped 2026-05-04
+2. ~~**Job code on sites**~~ — ✅ shipped 2026-05-04
+3. ~~**Dark/Light mode**~~ — ✅ shipped 2026-05-04
 
 ### Deferred until after SQL migration
 - **Tool photos** — thumbnail beside tool name; clicking opens full photo (lightbox); admin can upload/remove, crew can only view. Plan: Google Drive URL stored in `ToolInventory` now → swap to S3/Cloudinary after migration. Do not build until SQL backend is in place.
